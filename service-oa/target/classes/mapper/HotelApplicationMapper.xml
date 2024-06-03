@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.hualiang.core.mapper.HotelApplicationMapper" >
+
+    <select id="getAllHotelApplication" resultType="HotelApplication">
+        select hotel_application.*, hotel_name from hotel_application left join hotel using(hotel_id)
+        <where>
+            <foreach collection="map" index="key" item="value">
+                <if test="key != 'option' and key != 'value'">
+                    and ${key} <!-- 限定条件 -->
+                    <choose>
+                        <when test="value == 'null'">
+                            is null
+                        </when>
+                        <when test="value == 'not null'">
+                            is not null
+                        </when>
+                        <otherwise>
+                            = #{value}
+                        </otherwise>
+                    </choose>
+                </if>
+            </foreach>
+            and ${map.option} <!-- 模糊查询 -->
+            <if test="map.value == 'null'">
+                is null
+            </if>
+            <if test="map.value != 'null'">
+                like "%"#{map.value}"%"
+            </if>
+        </where>
+        order by submit_time DESC
+    </select>
+    
+    <!-- Integer updateHotelApplication(Integer id, Boolean status, Timestamp reviewTime); -->
+    <update id="updateHotelApplication">
+        update hotel_application set review_time = #{reviewTime}, status = #{status} where id = #{id}
+    </update>
+    
+</mapper>

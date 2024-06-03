@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hualiang.core.mapper.RoomMapper">
+
+    <!-- List<Room> getAllRoom(Map<String, String> map); -->
+    <select id="getAllRoom" resultType="Room">
+        select room.*, photo from room left join room_type on type_name = type
+        <where>
+            <foreach collection="map" index="key" item="value">
+                <if test="key != 'option' and key != 'value'">
+                    and room.${key} = #{value} <!-- 限定条件 -->
+                </if>
+            </foreach>
+            and ${map.option} like concat('%',#{map.value},'%') <!-- 模糊查询 -->
+        </where>
+    </select>
+
+    <!-- <T> Room getRoomByField(@Param("field") String field, @Param("value") T value); -->
+    <select id="getRoomByField" resultType="Room">
+        select room.*, photo from room left join room_type on type_name = type where room.${field} = #{value}
+    </select>
+
+    <!-- List<String> getAllRoomTypeNameByHotel(Integer hotelId); -->
+    <select id="getAllRoomTypeNameByHotel" resultType="String">
+        select type_name from room_type where hotel_id = #{hotelId}
+    </select>
+
+
+<!--    Mobile-->
+<!--    List<Hotel> searchRoomsByHotelId();-->
+    <select id="searchRoomsByHotelId" resultType="Room">
+        SELECT r.*, rt.message, rt.photo
+        FROM room r
+                 LEFT JOIN room_type rt
+                           ON r.type_id = rt.type_id
+        WHERE r.hotel_id = ?;
+
+
+        --         SELECT r.*, rt.message, rt.photo
+--         FROM room r
+--                LEFT JOIN room_type rt ON r.hotel_id = rt.hotel_id
+--         WHERE r.hotel_id = #{hotelId};
+
+    </select>
+
+<!--    List<Room> searchRoomDetail(@Param("roomId") int roomId);-->
+    <select id="searchRoomDetail" resultType="RoomDetail" >
+
+        SELECT r.*,
+               rt.type_name,
+               rt.message,
+               rt.photo,
+               GROUP_CONCAT(f.facility_name) AS facility_names,
+               GROUP_CONCAT(f.description)   AS facility_descriptions
+        FROM room r
+                 LEFT JOIN
+             room_type rt ON r.type_id = rt.type_id
+                 LEFT JOIN
+             room_facility rf ON r.room_id = rf.room_id
+                 LEFT JOIN
+             facility f ON rf.facility_id = f.facility_id
+        WHERE r.room_id = #{roomId}
+        GROUP BY r.room_id,
+                 rt.message,
+                 rt.photo;
+    </select>
+
+
+<!--    &lt;!&ndash; 查询 room 和 room_facility 和 facility &ndash;&gt;-->
+<!--    <select id="searchRoomFacility" resultType="Facility" parameterType="int">-->
+<!--        SELECT r.room_id, rf.facility_id, f.facility_name, f.description AS facility_description-->
+<!--        FROM room r-->
+<!--        LEFT JOIN room_facility rf ON r.room_id = rf.room_id-->
+<!--        LEFT JOIN facility f ON rf.facility_id = f.facility_id-->
+<!--        WHERE r.room_id = #{roomId}-->
+<!--    </select>-->
+
+</mapper>

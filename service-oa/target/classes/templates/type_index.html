@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>Managed room types</title>
+        <link rel="icon" th:href="@{/static/favicon.ico}" />
+        <link rel="stylesheet" th:href="@{/static/bootstrap/css/bootstrap.min.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/main.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/viewer.min.css}" />
+        <link rel="stylesheet" th:href="@{/static/webuploader/webuploader.css}" />
+        <link rel="stylesheet" th:href="@{/static/webuploader/image-upload/style.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/user_index.css}" />
+        <script th:src="@{/static/js/vue.min.js}"></script>
+        <script th:src="@{/static/js/axios.min.js}"></script>
+        <script th:src="@{/static/js/jquery-3.3.1.min.js}"></script>
+        <script th:src="@{/static/js/viewer.min.js}"></script>
+        <script th:src="@{/static/bootstrap/js/bootstrap.bundle.js}"></script>
+        <script th:src="@{/static/admin/js/upload.js}"></script>
+        <script th:src="@{/static/webuploader/webuploader.js}"></script>
+        <script th:src="@{/static/admin/js/config.js}"></script>
+    </head>
+
+    <body>
+        <style>
+            .info-frame {
+                height: 100%;
+                overflow: auto;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+            }
+            .card {
+                width: 49%;
+                margin-bottom: 32px;
+            }
+            .card h5 {
+                font-weight: bold;
+                color: black;
+            }
+            .card-body {
+                display: flex;
+                justify-content: space-between;
+            }
+            .message {
+                display: block;
+                max-height: 96px;
+                overflow-y: auto;
+            }
+            .pic-img {
+                width: 128px;
+                height: 128px;
+            }
+            .control {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-around;
+            }
+            #title {
+                color: black;
+                font-size: 24px;
+                font-weight: bold;
+                position: absolute;
+                top: 24px;
+            }
+        </style>
+        <main>
+            <div class="main pt-4 pb-5">
+                <div class="search" style="padding: 0; padding-bottom: 32px">
+                    <form class="form-inline float-left" th:action="@{'/applicate/type/index/'+${count+1}}" method="get">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-primary" th:onclick="|window.history.go(-${count})|"><i class="iconfont">&#xe66f;</i></button>
+                            <input style="margin: 0 4px" type="text" name="name" class="form-control" placeholder="输入房型名称" />
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="iconfont"> </i>Search</button>
+                    </form>
+                    <span id="title" style="left: 46%; background-color: white" th:text="${session.hotelName}"></span>
+                    <button id="add_type" class="btn btn-primary float-right"><i class="iconfont"> </i>Add Room Type</button>
+                </div>
+                <div class="info-frame" th:style="|align-content: ${#lists.isEmpty(list) ? 'normal' : 'flex-start'};|">
+                    <h1 th:if="${#lists.isEmpty(list)}" class="display-4" style="margin: auto">No room type</h1>
+                    <div class="card" th:unless="${#lists.isEmpty(list)}" th:each="type : ${list}">
+                        <div class="card-body">
+                            <div style="max-width: 90%">
+                                <div class="float-left pic" style="position: relative; height: 128px" th:object="${type.toURL()}">
+                                    <img class="pic-img" alt="photo" th:src="@{*{[0]}}" />
+                                    <span class="img_num" tabindex="0" th:text="|*{length}|"></span>
+                                    <img style="display: none" height="1px" th:src="@{${url}}" th:each="url : ${type.toPicURL()}" />
+                                </div>
+                                <div style="margin-left: 138px">
+                                    <h5 class="name" th:text="${type.typeName}"></h5>
+                                    <span class="message" th:text="${type.message}">...</span>
+                                </div>
+                            </div>
+                            <div class="control" th:inline="javascript">
+                                <button type="button" class="mod btn btn-primary" th:id="${type.typeId}" th:@click="|addPhotoToUploader('${type.toURLString()}')|">Compiler</button>
+                                <button type="button" class="del btn btn-primary" th:id="${type.typeId}">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <div class="mask"></div>
+        <div class="type_frame register" style="width: 600px">
+            <div class="header">
+                <h2>Add Room Type</h2>
+            </div>
+            <div class="box" style="max-height: 500px; overflow: auto; padding: 20px">
+                <div class="my-col" style="margin: 0 auto; max-width: 70.934%">
+                    <div class="form-group">
+                        <label>Hotel photos (re-selected)</label>
+                        <div id="wrapper" type="room">
+                            <div id="container">
+                                <div id="uploader">
+                                    <div class="queueList">
+                                        <div id="dndArea" class="placeholder" style="min-height: 234px; padding-top: 137px">
+                                            <div id="filePicker"></div>
+                                        </div>
+                                    </div>
+                                    <div class="statusBar" style="display: none">
+                                        <div class="progress">
+                                            <span class="text">0%</span>
+                                        </div>
+                                        <div class="info"></div>
+                                        <div class="btns">
+                                            <div id="filePicker2"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Room Type Name (required)</label>
+                        <input type="text" id="typeName" class="form-control" v-model="typeName" style="border: 1px solid #ced4da" />
+                        <small class="form-text text-muted"></small>
+                    </div>
+                    <div class="form-group">
+                        <label>Room Description (required)</label>
+                        <textarea rows="6" id="message" class="form-control" v-model="message" style="resize: none"></textarea>
+                        <small class="form-text text-muted"></small>
+                    </div>
+                </div>
+            </div>
+            <div class="footer">
+                <input type="button" id="can" class="btn btn-primary" value="Cancel" />
+                <input type="button" id="sub" class="btn btn-primary uploadBtn" value="Submit" />
+            </div>
+        </div>
+        <script th:inline="javascript">
+            function callback(isExecute) {
+                if (isExecute) {
+                    var index = photoPath[0].lastIndexOf("\\");
+                    var tempPath = photoPath[0].substring(0, index);
+                    photoPath.forEach((path) => {
+                        tempPath += "|" + path.substring(index + 1);
+                    });
+                    vue.JustDoIt(tempPath, /*[[${session.user.roleName}]]*/ "Manager");
+                } else {
+                    window.location.reload();
+                }
+            }
+            function getFileFromUrl(url) {
+                return new Promise((resolve, reject) => {
+                    var blob = null;
+                    var name = url.substring(url.lastIndexOf("/") + 1);
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("GET", url);
+                    xhr.setRequestHeader("Accept", "image/" + name.split(".")[1]);
+                    xhr.responseType = "blob";
+                    // 加载时处理
+                    xhr.onload = () => {
+                        // 获取返回结果
+                        blob = xhr.response;
+                        let file = new File([blob], name, { type: "image/" + name.split(".")[1] });
+                        // 返回结果
+                        resolve(file);
+                    };
+                    xhr.onerror = (e) => {
+                        reject(e);
+                    };
+                    // 发送
+                    xhr.send();
+                });
+            }
+            var vue = new Vue({
+                el: ".my-col",
+                data: {
+                    typeId: "",
+                    typeName: "",
+                    message: "",
+                    method: "",
+                },
+                methods: {
+                    JustDoIt(tempPath, role) {
+                        disappear($(".mask"), $(".type_frame"));
+                        setTimeout(() => {
+                            axios({
+                                url: "/applicate/" + role + "/type/crud",
+                                method: vue.method,
+                                data: {
+                                    typeId: vue.typeId,
+                                    hotelId: /*[[${hotelId}]]*/ null,
+                                    typeName: vue.typeName,
+                                    message: vue.message,
+                                    photo: tempPath,
+                                },
+                            })
+                                .then((response) => {
+                                    var result = response.data;
+                                    if (result.code == 200) {
+                                        alert(role == "Admin" ? result.message : "申请提交成功，请等待审核");
+                                        window.location.reload();
+                                    } else {
+                                        alert(role == "Admin" ? result.message : "申请提交失败");
+                                    }
+                                })
+                                .catch((error) => {
+                                    alert("请求出错：" + error);
+                                    window.location.reload();
+                                });
+                        }, 400);
+                    },
+                },
+            });
+        </script>
+        <script>
+            $("#title").css("left", ($(".main").innerWidth() - $("#title").width()) / 2);
+
+            var uploader;
+            var state = "pedding"; // pedding, ready, uploading, confirm, done, finish.
+            var photoPath = [];
+
+
+            var vue2 = new Vue({
+                el: ".info-frame",
+                data: {},
+                methods: {
+                    addPhotoToUploader(photo) {
+                        uploader.reset();
+                        photo.split("|").forEach((el) => {
+                            getFileFromUrl("/" + el)
+                                .then((response) => {
+                                    uploader.addFile(response);
+                                })
+                                .catch((e) => {
+                                    console.error(e);
+                                });
+                        });
+                    },
+                },
+            });
+
+            $(".pic").viewer();
+
+            $("#add_type").click(function () {
+                $(".type_frame h2").text("Add Room Type");
+                $("#pic").css("display", "none");
+                uploader.reset();
+                vue.typeId = null;
+                vue.typeName = "";
+                vue.message = "";
+                vue.method = "post";
+                appear($(".mask"), $(".type_frame"));
+            });
+
+            $(".mod").click(function () {
+                var parent = $(this).parent().parent();
+                vue.typeId = event.target.id;
+                vue.typeName = parent.find(".name").text();
+                vue.message = parent.find(".message").text();
+                vue.method = "put";
+                $(".type_frame h2").text("编辑房型");
+                appear($(".mask"), $(".type_frame"));
+            });
+
+            $("#can").click(function () {
+                disappear($(".mask"), $(".type_frame"));
+            });
+
+            $(".del").click(function () {
+                if (!confirm("确定要删除吗？")) {
+                    return;
+                }
+                $.ajax({
+                    url: "/applicate/type/crud/" + event.target.id,
+                    type: "DELETE",
+                    data: {},
+                    success: function (data) {
+                        alert(data.message);
+                        if (data.code == 200) {
+                            window.location.reload();
+                        }
+                    },
+                    error: function (textStatus, errorThrown) {
+                        alert("请求出错：" + textStatus + "，" + errorThrown);
+                    },
+                });
+            });
+        </script>
+    </body>
+</html>

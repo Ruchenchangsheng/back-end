@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title></title>
+        <link rel="icon" th:href="@{/static/favicon.ico}" />
+        <link rel="stylesheet" th:href="@{/static/bootstrap/css/bootstrap.min.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/main.css}" />
+        <link rel="stylesheet" th:href="@{/static/webuploader/webuploader.css}" />
+        <link rel="stylesheet" th:href="@{/static/webuploader/image-upload/style.css}" />
+        <script th:src="@{/static/js/vue.min.js}"></script>
+        <script th:src="@{/static/js/axios.min.js}"></script>
+        <script th:src="@{/static/js/jquery-3.3.1.min.js}"></script>
+        <script th:src="@{/static/bootstrap/js/bootstrap.bundle.js}"></script>
+        <script th:src="@{/static/admin/js/upload.js}"></script>
+        <script th:src="@{/static/webuploader/webuploader.js}"></script>
+    </head>
+
+    <body>
+        <main>
+            <div class="main">
+                <div class="title-box">
+                    <h5>Edit Hotel</h5>
+                </div>
+                <div class="form-box">
+                    <div class="col-5">
+                        <div class="form-group">
+                            <label>Hotel photos (submitted separately)</label>
+                            <div id="wrapper" type="hotel">
+                                <div id="container" style="margin-top: 0">
+                                    <div id="uploader">
+                                        <div class="queueList">
+                                            <div id="dndArea" class="placeholder">
+                                                <div id="filePicker"></div>
+                                                <p>Or drag your photos here to select up to 300 at a time</p>
+                                            </div>
+                                        </div>
+                                        <div class="statusBar" style="display: none">
+                                            <div class="progress">
+                                                <span class="text">0%</span>
+                                                <span class="percentage"></span>
+                                            </div>
+                                            <div class="info"></div>
+                                            <div class="btns">
+                                                <div id="filePicker2"></div>
+                                                <div class="uploadBtn">Upload and update</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr style="border: 1px solid #ccc; margin: 29px 0 1.5rem" />
+                    <div class="row">
+                        <div class="col-5">
+                            <form>
+                                <div class="form-group">
+                                    <label>Hotel Name</label>
+                                    <input type="text" id="hotelName" class="form-control" v-model="hotelName" th:value="${hotel.hotelName}" />
+                                    <small class="form-text text-muted"></small>
+                                </div>
+                                <div class="form-group">
+                                    <label>address</label>
+                                    <input type="text" id="address" class="form-control" v-model="address" th:value="${hotel.address}" />
+                                    <small class="form-text text-muted"></small>
+                                </div>
+                                <div class="form-group">
+                                    <label>Phone Number</label>
+                                    <input type="text" id="phone" class="form-control" v-model="phone" th:value="${hotel.phone}" />
+                                    <small class="form-text text-muted"></small>
+                                </div>
+                                <div class="form-group">
+                                    <label>Hotel Description</label>
+                                    <textarea rows="6" id="message" class="form-control" style="resize: none" v-model="message" th:text="${hotel.message}"></textarea>
+                                    <small class="form-text text-muted"></small>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="submit-box" style="border-top: 1px solid #ccc">
+                    <button type="submit" class="btn btn-primary" @click="JustDoIt">Submit</button>
+                    <button type="button" onclick="window.history.back()" class="btn btn-outline-secondary">Cancel</button>
+                </div>
+            </div>
+        </main>
+        <script th:inline="javascript">
+            function getFileFromUrl(url) {
+                return new Promise((resolve, reject) => {
+                    var blob = null;
+                    var name = url.substring(url.lastIndexOf("/") + 1);
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("GET", url);
+                    xhr.setRequestHeader("Accept", "image/" + name.split(".")[1]);
+                    xhr.responseType = "blob";
+                    // 加载时处理
+                    xhr.onload = () => {
+                        // 获取返回结果
+                        blob = xhr.response;
+                        let file = new File([blob], name, { type: "image/" + name.split(".")[1] });
+                        // 返回结果
+                        resolve(file);
+                    };
+                    xhr.onerror = (e) => {
+                        reject(e);
+                    };
+                    // 发送
+                    xhr.send();
+                });
+            }
+
+            function addPhotoToUpload(array) {
+                array.forEach((element) => {
+                    getFileFromUrl(element)
+                        .then((response) => {
+                            uploader.addFile(response);
+                        })
+                        .catch((e) => {
+                            console.error(e);
+                        });
+                });
+            }
+
+            $(function () {
+                addPhotoToUpload(/*[[${hotel.getURL()}]]*/ []);
+            });
+
+            var uploader;
+            var state = "pedding"; // pedding, ready, uploading, confirm, done, finish.
+            var photoPath = [];
+
+            var vue = new Vue({
+                el: ".main",
+                data: {
+                    hotelId: /*[[${hotel.hotelId}]]*/ null,
+                    hotelName: $("#hotelName").val(),
+                    address: $("#address").val(),
+                    phone: $("#phone").val(),
+                    message: $("#message").val(),
+                },
+                methods: {
+                    JustDoIt() {
+                        axios
+                            .put("/hotel/crud", {
+                                hotelId: vue.hotelId,
+                                hotelName: vue.hotelName,
+                                address: vue.address,
+                                managerId: /*[[${hotel.managerId}]]*/ null,
+                                phone: vue.phone,
+                                message: vue.message,
+                            })
+                            .then((response) => {
+                                var result = response.data;
+                                alert(result.message);
+                                if (result.code == 200) {
+                                    window.location.reload();
+                                }
+                            })
+                            .catch((error) => {
+                                alert("请求出错：" + error);
+                                // window.location.reload();
+                            });
+                    },
+                },
+            });
+
+            // 照片上传成功后执行
+            function callback(isExecute) {
+                var index = photoPath[0].lastIndexOf("\\");
+                var tempPath = photoPath[0].substring(0, index);
+                photoPath.forEach((path) => {
+                    tempPath += "|" + path.substring(index + 1);
+                });
+                axios
+                    .put(`/hotel/crud/photo/${vue.hotelId}/${isExecute}`, tempPath, {
+                        headers: {
+                            "Content-Type": "text/plain",
+                        },
+                    })
+                    .then((response) => {
+                        var result = response.data;
+                        alert(result.message);
+                        if (result.code == 200) {
+                            window.location.reload();
+                        }
+                    })
+                    .catch((error) => {
+                        alert("请求出错：" + error);
+                    });
+            }
+        </script>
+    </body>
+</html>

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>Hotel Registration</title>
+        <link rel="icon" th:href="@{/static/favicon.ico}" />
+        <link rel="stylesheet" th:href="@{/static/bootstrap/css/bootstrap.min.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/main.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/user_index.css}" />
+        <script th:src="@{/static/js/vue.min.js}"></script>
+        <script th:src="@{/static/js/axios.min.js}"></script>
+        <script th:src="@{/static/js/jquery-3.3.1.min.js}"></script>
+        <script th:src="@{/static/bootstrap/js/bootstrap.bundle.js}"></script>
+        <script th:src="@{/static/admin/js/config.js}"></script>
+    </head>
+
+    <body>
+        <main>
+            <div class="main">
+                <div class="title-box">
+                    <table style="text-align: center">
+                        <thead style="color: black">
+                            <tr>
+                                <th :width="width[0]" scope="col">Order Id</th>
+                                <th :width="width[1]" scope="col">Room No.</th>
+                                <th :width="width[2]" scope="col">Hotel Name</th>
+                                <th :width="width[3]" scope="col">Reservation Time</th>
+                                <th :width="width[4]" scope="col" th:style="|display: ${session.user.level == 'Guest' ? 'none' : 'table-cell'};|">Reservation Customer ID</th>
+                                <th :width="width[5]" scope="col">Application Status</th>
+                                <th th:if="${session.user.level == 'Guest'}" :width="width[6]" scope="col">Manipulate</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+                <div class="table-box" th:style="|display: ${#lists.isEmpty(list) ? 'flex' : 'block'};|">
+                    <h1 th:if="${#lists.isEmpty(list)}" class="display-4" style="margin: auto">No booking request</h1>
+                    <table class="table" style="text-align: center" th:unless="${#lists.isEmpty(list)}">
+                        <tbody>
+                            <tr th:each="reservation : ${list}">
+                                <th th:text="${reservation.id}"></th>
+                                <td th:text="${reservation.roomId}"></td>
+                                <td th:text="${reservation.hotelName}"></td>
+                                <td th:text="${reservation.createTimeToString()}"></td>
+                                <td th:style="|display: ${session.user.level == 'Guest' ? 'none' : 'table-cell'};|"><a title="Click to view customer information" class="info" href="javascript:void(0)" th:text="${reservation.userId}"></a></td>
+                                <td class="status"><b th:text="${reservation.checkoutTime != null ? 'Checked out' : reservation.checkinTime != null ? 'Checked in' : reservation.status == true ? 'Adopted' : reservation.status == false ? 'Unsuccessful' : 'awaiting approval'}"></b></td>
+                                <td th:if="${session.user.level == 'Guest'}" style="padding: 0.4rem; width: 20%" th:switch="${reservation.status}">
+                                    <button class="btn btn-danger" :disabled="Lock" th:case="true" th:if="${reservation.checkinTime == null}" th:@click="|JustDoIt(${reservation.id})|"><i class="iconfont">&#xe6a6; </i>Cancel Booking</button>
+                                    <button class="btn btn-primary" :disabled="Lock" th:case="false"><i class="iconfont">&#xe681; </i>appeal</button>
+                                    <button class="btn btn-secondary" disabled th:case="null"><i class="iconfont">&#xe6d9; </i>Waiting to be audited</button>
+                                    <button class="btn btn-primary" th:if="${reservation.checkinTime != null}"><i class="iconfont">&#xe67c; </i>estimation</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="submit-box" style="border-top: 1px solid #ccc">
+                    <h5 th:text="|${list.size}|"></h5>
+                </div>
+            </div>
+        </main>
+        <div th:if="${session.user.level != 'Guest'}" class="mask"></div>
+        <div th:if="${session.user.level != 'Guest'}" class="info_frame register">
+            <div class="header">
+                <h2>customer information</h2>
+                <i id="back" class="iconfont" style="position: absolute; top: 8px; right: 19px; font-size: 24px; cursor: pointer">&#xe679;</i>
+            </div>
+            <div class="body" style="padding: 0 15px">
+                <div class="box">UserName：<b>{{user.username}}</b></div>
+                <div class="box">Real name：<b>{{user.realName}}</b></div>
+                <div class="box">Gender：<b>{{user.gender}}</b></div>
+                <div class="box">Age：<b>{{user.age}}</b></div>
+                <div class="box">Phone Number：<b>{{user.phone}}</b></div>
+                <div class="box">Email：<b>{{user.email}}</b></div>
+            </div>
+        </div>
+        <script>
+            $(function () {
+                var width = [];
+                $("tbody > tr:first th, tbody > tr:first td").each(function () {
+                    width.push($(this).innerWidth());
+                });
+                if (width.length != 0) {
+                    vue.width = width;
+                }
+            });
+            $(".status").each(function () {
+                switch ($(this).text()) {
+                    case "Checked in":
+                        $(this).css("color", "blue");
+                        break;
+                    case "Checked out":
+                        $(this).css("color", "cadetblue");
+                        break;
+                    case "Adopted":
+                        $(this).css("color", "green");
+                        break;
+                    case "Unsuccessful":
+                        $(this).css("color", "red");
+                        break;
+                    case "awaiting approval":
+                        $(this).css("color", "darkgray");
+                        break;
+                    default:
+                        break;
+                }
+            });
+
+            var vue = new Vue({
+                el: ".main",
+                data: {
+                    width: [],
+                    Lock: false,
+                },
+                methods: {
+                    JustDoIt(id) {
+                        this.Lock = true;
+                        axios
+                            .get(`/room/reservation/handle/${id}`)
+                            .then((response) => {
+                                vue.Lock = false;
+                                var result = response.data;
+                                alert(result.message);
+                                if (result.code == 200) {
+                                    window.location.reload();
+                                }
+                            })
+                            .catch((error) => {
+                                alert("请求出错：" + error);
+                            });
+                    },
+                },
+            });
+        </script>
+        <script th:if="${session.user.level != 'Guest'}">
+            var vue1 = new Vue({
+                el: ".info_frame",
+                data: {
+                    user: {},
+                },
+                methods: {
+                    JustDoIt(uid) {
+                        axios
+                            .get("/user/crud/" + uid)
+                            .then((response) => {
+                                var result = response.data;
+                                if (result.code == 200) {
+                                    vue1.user = result.data;
+                                } else {
+                                    alert(result.message);
+                                }
+                            })
+                            .catch((error) => {
+                                alert("请求出错：" + error);
+                            });
+                    },
+                },
+            });
+
+            $(".info").click(function () {
+                vue1.JustDoIt($(this).text());
+                appear($(".mask"), $(".info_frame"));
+            });
+
+            $("#back").click(() => {
+                disappear($(".mask"), $(".info_frame"));
+            });
+        </script>
+    </body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>User List</title>
+        <link rel="icon" th:href="@{/static/favicon.ico}" />
+        <link rel="stylesheet" th:href="@{/static/bootstrap/css/bootstrap.min.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/main.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/user_index.css}" />
+        <script th:src="@{/static/js/vue.min.js}"></script>
+        <script th:src="@{/static/js/axios.min.js}"></script>
+        <script th:src="@{/static/js/jquery-3.3.1.min.js}"></script>
+        <script th:src="@{/static/bootstrap/js/bootstrap.bundle.js}"></script>
+        <script th:src="@{/static/admin/js/config.js}"></script>
+        <script th:src="@{/static/admin/js/user_script.js}"></script>
+    </head>
+
+    <body>
+        <main>
+            <div class="main">
+                <div class="search">
+                    <form class="form-inline float-left" th:action="@{/user/index/1}" method="get">
+                        <div class="form-group">
+                            <select name="option">
+                                <option value="uid" th:selected="${map['option'] == 'uid'}">UID</option>
+                                <option value="username" th:selected="${map['option'] == 'username'}">UserName</option>
+                                <option value="email" th:selected="${map['option'] == 'email'}">Email</option>
+                                <option value="gender" th:selected="${map['option'] == 'gender'}">Gender</option>
+                                <option value="phone" th:selected="${map['option'] == 'phone'}">Phone Number</option>
+                            </select>
+                            <input style="margin: 0 4px" type="text" name="value" th:value="${map['value']}" class="form-control" placeholdeclassr="Enter keywords" />
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="iconfont"> </i>Search</button>
+                    </form>
+                    <a id="add" class="btn btn-primary float-right" href="#"><i class="iconfont"> </i>Add</a>
+                </div>
+
+                <div class="table-box">
+                    <table class="table" style="text-align: center">
+                        <thead>
+                            <tr>
+                                <th scope="col">UID</th>
+                                <th scope="col">UserName</th>
+                                <th scope="col">Real name</th>
+                                <th scope="col">Gender</th>
+                                <th scope="col">Age</th>
+                                <th scope="col">Phone Number</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Competence</th>
+                                <th scope="col">Manipulate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="user : ${page.records}">
+                                <th th:text="${user.uid}" scope="row">1</th>
+                                <td th:text="${user.username}">admin</td>
+                                <td th:text="${user.realName ?: 'NULL'}">无</td>
+                                <td th:text="${user.gender ?: '无'}">无</td>
+                                <td th:text="${user.age ?: '无'}">无</td>
+                                <td th:text="${user.phone ?: '无'}">无</td>
+                                <td th:text="${user.email}">642615676@qq.com</td>
+                                <td th:text="${user.roleName == 'Admin' ? '管理员' : user.roleName == 'Guest' ? '客户' : '经营者'}">Administrator</td>
+                                <td style="padding: 0.4rem">
+                                    <button th:class="${user.roleName == 'Admin' ? 'disabled' : 'modify'}">Compiler</button>
+                                    <button th:id="${user.uid}" class="delete">Delete</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="page">
+                    <span class="total float-left page-link" th:text="|共${page.total}条|">共23223条</span>
+                    <ul class="pagination">
+                        <li class="page-item"><a class="page-link" title="Index" th:if="${page.current > 1}" th:href="@{/user/index/1?option={s1}&value={s2}(s1=${map['option']},s2=${map['value']})}">&lt;&lt;</a></li>
+                        <li class="page-item"><a class="page-link" title="前一页" th:if="${page.current > 1}" th:href="@{/user/index/{s}(s=${page.current-1},option=${map['option']},value=${map['value']})}">&lt;</a></li>
+                        <span class="total float-left page-link"><span>[[${page.current}]]</span>/<span>[[${page.pages}]]</span></span>
+                        <li class="page-item"><a class="page-link" title="后一页" th:if="${page.pages > page.current}" th:href="@{/user/index/{s}(s=${page.current+1},option=${map['option']},value=${map['value']})}">&gt;</a></li>
+                        <li class="page-item"><a class="page-link" title="尾页" th:if="${page.pages > page.current}" th:href="@{/user/index/{s}(s=${page.pages},option=${map['option']},value=${map['value']})}">&gt;&gt;</a></li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+        <div class="mask"></div>
+        <div class="register">
+            <form>
+                <div class="header">
+                    <h2>Add User</h2>
+                </div>
+                <div class="body">
+                    <div class="container">
+                        <input id="username" name="username" type="text" v-model="username" placeholder="请输入用户名（必填）" />
+                        <span class="left"></span>
+                        <span class="right"></span>
+                        <span class="top"></span>
+                        <span class="bottom"></span>
+                    </div>
+                    <div class="input_pwd container">
+                        <input id="password" name="password" type="password" v-model="password" placeholder="请输入密码（必填）" />
+                        <span class="left"></span>
+                        <span class="right"></span>
+                        <span class="top"></span>
+                        <span class="bottom"></span>
+                    </div>
+                    <div class="input_hidden container">
+                        <input style="margin-top: 14px;" type="radio" name="gender" value="男" v-model="gender" />
+                        <label style="margin-right: 19px;">男</label>
+                        <input type="radio" name="gender" value="女" v-model="gender" />
+                        <label>女</label>
+                        <span class="left"></span>
+                        <span class="right"></span>
+                        <span class="top"></span>
+                        <span class="bottom"></span>
+                    </div>
+                    <div class="input_hidden container">
+                        <input id="age" name="age" type="number" v-model="age" placeholder="请输入年龄" />
+                        <span class="left"></span>
+                        <span class="right"></span>
+                        <span class="top"></span>
+                        <span class="bottom"></span>
+                    </div>
+                    <div class="input_hidden container">
+                        <input id="phone" name="phone" type="tel" v-model="phone" placeholder="请输入电话号码" />
+                        <span class="left"></span>
+                        <span class="right"></span>
+                        <span class="top"></span>
+                        <span class="bottom"></span>
+                    </div>
+                    <div class="container">
+                        <input id="email" name="email" type="email" v-model="email" placeholder="请输入邮箱（必填）" />
+                        <span class="left"></span>
+                        <span class="right"></span>
+                        <span class="top"></span>
+                        <span class="bottom"></span>
+                    </div>
+                    <div class="container" style="color: black;">
+                        <input id="guest" style="margin-top: 14px;" type="radio" name="checkbox" value="3" v-model="role" />
+                        <label style="margin-right: 19px;" for="guest">client</label>
+                        <input id="manager" type="radio" name="checkbox" value="2" v-model="role" />
+                        <label for="manager">Hotel Manager</label>
+                        <span class="left"></span>
+                        <span class="right"></span>
+                        <span class="top"></span>
+                        <span class="bottom"></span>
+                    </div>
+                </div>
+                <div class="footer">
+                    <input type="button" id="cancel" class="btn btn-primary" value="Cancel" style="margin: 0 59.8px" />
+                    <input type="button" id="submit" class="btn btn-primary" value="Submit" style="margin: 0 59.8px" @click="JustDoIt" />
+                </div>
+            </form>
+        </div>
+    </body>
+</html>

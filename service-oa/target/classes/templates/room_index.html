@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>Room List</title>
+        <link rel="icon" th:href="@{/static/favicon.ico}" />
+        <link rel="stylesheet" th:href="@{/static/bootstrap/css/bootstrap.min.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/main.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/viewer.min.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/user_index.css}" />
+        <script th:src="@{/static/js/vue.min.js}"></script>
+        <script th:src="@{/static/js/axios.min.js}"></script>
+        <script th:src="@{/static/js/jquery-3.3.1.min.js}"></script>
+        <script th:src="@{/static/js/viewer.min.js}"></script>
+        <script th:src="@{/static/bootstrap/js/bootstrap.bundle.js}"></script>
+        <script th:src="@{/static/admin/js/config.js}"></script>
+        <style>
+            .info {
+                font-weight: bold;
+            }
+            .status {
+                font-size: 18px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+            .status:hover {
+                background-color: #ced4da;
+            }
+            .price {
+                color: orangered;
+                font-size: 24px;
+            }
+            .pic {
+                width: 15%;
+            }
+            #title {
+                color: black;
+                font-size: 24px;
+                font-weight: bold;
+                position: absolute;
+                top: 19px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <main>
+            <div class="main">
+                <div class="search" style="border-bottom: 1px solid #ccc">
+                    <form class="form-inline float-left" th:action="@{/hotel/{id}/room/index/1(id=${hotelId})}" method="get">
+                        <div class="form-group">
+                            <select name="option">
+                                <option value="room_id" th:selected="${map['option'] == 'room_id'}">ID</option>
+                                <option value="type" th:selected="${map['option'] == 'type'}">Room Type</option>
+                            </select>
+                            <input style="margin: 0 4px" type="text" name="value" th:value="${map['value']}" class="form-control" v-model="" placeholdeclassr="Enter keywords" />
+                        </div>
+                        <button class="btn btn-primary" type="submit"><i class="iconfont"> </i>Search</button>
+                    </form>
+                    <span id="title" style="left: 46%">Room List</span>
+                    <a id="add_room" class="btn btn-primary float-right" href="#"><i class="iconfont"> </i>Add Room</a>
+                    <a class="btn btn-primary float-right" th:href="@{/hotel/{hid}/room/roomType/1(hid=${hotelId},name=)}" style="margin-right: 10px"><i class="iconfont">&#xe6b2; </i>Managed room types</a>
+                </div>
+                <div class="table-box" th:style="|display: ${#lists.isEmpty(page.records) ? 'flex' : 'block'};|">
+                    <h1 th:if="${#lists.isEmpty(page.records)}" class="display-4" style="margin: auto">No room</h1>
+                    <table th:unless="${#lists.isEmpty(page.records)}" class="table" style="text-align: center">
+                        <thead>
+                            <tr>
+                                <th>Room No.</th>
+                                <th>Img</th>
+                                <th>Room Type</th>
+                                <th>Size</th>
+                                <th>Maximum Occupancy</th>
+                                <th>Price</th>
+                                <th>statuses</th>
+                                <th>Related User IDs</th>
+                                <th>Manipulate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="room : ${page.records}">
+                                <th th:text="${room.roomId}">84</th>
+                                <td class="pic">
+                                    <div style="position: relative; display: inline-block" th:object="${room.getURL()}">
+                                        <img alt="房间缩略图" height="71px" th:src="@{*{[0]}}" />
+                                        <span class="img_num" tabindex="0" th:text="|*{length}|"></span>
+                                    </div>
+                                    <img style="display: none" height="2px" th:src="@{${url}}" th:each="url : ${room.getPicURL()}" />
+                                </td>
+                                <td th:text="${room.type}"></td>
+                                <td th:utext="|${room.size}m<sup>2</sup>|">25</td>
+                                <td th:text="${room.numOfGuests}">2</td>
+                                <td th:text="|¥${room.price}|" class="price">564</td>
+                                <td th:id="${room.roomId}" class="status" title="点击更改房间状态" th:text="${room.status == 0 ? 'vacant' : room.status == 1 ? 'booked' : 'Checking in'}">vacant</td>
+                                <td style="font-size: 24px">
+                                    <a title="Click to view customer information" class="info" href="javascript:void(0)" th:if="${room.userId}" th:text="${room.userId}">司培宇</a>
+                                    <b th:unless="${room.userId}">Not Available</b>
+                                </td>
+                                <td style="padding: 0.4rem; width: 25%">
+                                    <button class="history blue" th:onclick="|window.location.href='@{/hotel/room/{rid}/checkin/history(rid=${room.roomId},option=id,value=)}'|">History</button>
+                                    <button class="view blue" th:onclick="|window.location.href='@{/hotel/{hid}/room/{rid}/facility/1(hid=${hotelId},rid=${room.roomId},name=)}'|">Managerial</button>
+                                    <button class="modify">Compiler</button>
+                                    <button th:id="${room.roomId}" class="delete">Delete</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="page">
+                    <span class="total float-left page-link" th:text="|共${page.total}条|">共23223条</span>
+                    <ul class="pagination">
+                        <li class="page-item"><a class="page-link" title="Index" th:if="${page.current > 1}" th:href="@{/hotel/{id}/room/index/1(id=${hotelId},option=${map['option']},value=${map['value']})}">&lt;&lt;</a></li>
+                        <li class="page-item"><a class="page-link" title="前一页" th:if="${page.current > 1}" th:href="@{/hotel/{id}/room/index/{s}(id=${hotelId},s=${page.current-1},option=${map['option']},value=${map['value']})}">&lt;</a></li>
+                        <span class="total float-left page-link"><span>[[${page.current}]]</span>/<span>[[${page.pages}]]</span></span>
+                        <li class="page-item"><a class="page-link" title="后一页" th:if="${page.pages > page.current}" th:href="@{/hotel/{id}/room/index/{s}(id=${hotelId},s=${page.current+1},option=${map['option']},value=${map['value']})}">&gt;</a></li>
+                        <li class="page-item"><a class="page-link" title="尾页" th:if="${page.pages > page.current}" th:href="@{/hotel/{id}/room/index/{s}(id=${hotelId},s=${page.pages},option=${map['option']},value=${map['value']})}">&gt;&gt;</a></li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+        <div class="mask"></div>
+        <div class="info_frame register">
+            <div class="header">
+                <h2>customer information</h2>
+                <i id="back" class="iconfont" style="position: absolute; top: 8px; right: 19px; font-size: 24px; cursor: pointer">&#xe679;</i>
+            </div>
+            <div class="body" style="padding: 0 15px">
+                <div class="box">UserName：<b>{{user.username}}</b></div>
+                <div class="box">Real name：<b>{{user.realName}}</b></div>
+                <div class="box">Gender：<b>{{user.gender}}</b></div>
+                <div class="box">Age：<b>{{user.age}}</b></div>
+                <div class="box">Phone Number：<b>{{user.phone}}</b></div>
+                <div class="box">Email：<b>{{user.email}}</b></div>
+            </div>
+        </div>
+        <div class="edit_frame register">
+            <form>
+                <div class="header">
+                    <h2>Add User</h2>
+                </div>
+                <div class="body">
+                    <input type="hidden" id="hotelId" th:value="${hotelId}" />
+                    <div class="container" style="padding: 0">
+                        <select class="form-control" required name="type" id="type" v-model="type">
+                            <option value="">Please select room type</option>
+                            <option th:each="type : ${roomType}" th:value="${type}" th:text="${type}"></option>
+                        </select>
+                        <span class="left"></span>
+                        <span class="right"></span>
+                        <span class="top"></span>
+                        <span class="bottom"></span>
+                    </div>
+                    <div class="container">
+                        <input id="size" type="number" v-model="size" placeholder="Please enter a room size" />
+                        <span class="left"></span>
+                        <span class="right"></span>
+                        <span class="top"></span>
+                        <span class="bottom"></span>
+                    </div>
+                    <div class="container">
+                        <input id="numOfGuests" type="number" v-model="numOfGuests" placeholder="Please enter the maximum number of occupants" />
+                        <span class="left"></span>
+                        <span class="right"></span>
+                        <span class="top"></span>
+                        <span class="bottom"></span>
+                    </div>
+                    <div class="container">
+                        <input id="price" type="number" v-model="price" placeholder="Please enter the room price" />
+                        <span class="left"></span>
+                        <span class="right"></span>
+                        <span class="top"></span>
+                        <span class="bottom"></span>
+                    </div>
+                </div>
+                <div class="footer">
+                    <input type="button" id="cancel" class="btn btn-primary" value="Cancel" />
+                    <input type="button" id="submit" class="btn btn-primary" value="Submit" @click="DoIt" />
+                </div>
+            </form>
+        </div>
+        <div class="status_frame register">
+            <div class="header">
+                <h2>Change room status</h2>
+            </div>
+            <div class="other" style="padding: 20px">
+                <div style="display: flex; justify-content: space-evenly">
+                    <div id="vacant" class="status_input">
+                        <input type="radio" name="status" value="0" v-model="status" @change="showing(false)" />
+                        <label style="margin-bottom: 0" for="huey">vacant</label>
+                    </div>
+                    <div id="booked" class="status_input">
+                        <input type="radio" name="status" value="1" v-model="status" @change="showing(true)" />
+                        <label style="margin-bottom: 0" for="dewey">booked</label>
+                    </div>
+                    <div id="Checking in" class="status_input">
+                        <input type="radio" name="status" value="2" v-model="status" @change="showing(true)" />
+                        <label style="margin-bottom: 0" for="louie">Checking in</label>
+                    </div>
+                </div>
+                <input id="user_id" type="number" title="预约或入住用户ID" v-model="userId" class="form-control" style="margin-top: 15px" placeholder="Please enter the reservation or check-in user ID" v-show="showInput" />
+            </div>
+            <div class="footer">
+                <input type="button" id="can" class="btn btn-primary" value="Cancel" />
+                <input type="submit" id="sub" class="btn btn-primary" value="Submit" @click="JustDoIt" />
+            </div>
+        </div>
+
+        <script>
+            $(".pic").viewer();
+            var state = "pedding";
+
+            var vue1 = new Vue({
+                el: ".info_frame",
+                data: {
+                    user: {},
+                },
+                methods: {
+                    JustDoIt(uid) {
+                        axios
+                            .get("/user/crud/" + uid)
+                            .then((response) => {
+                                var result = response.data;
+                                if (result.code == 200) {
+                                    vue1.user = result.data;
+                                } else {
+                                    alert(result.message);
+                                }
+                            })
+                            .catch((error) => {
+                                alert("请求出错：" + error);
+                            });
+                    },
+                },
+            });
+            var vue3 = new Vue({
+                el: ".status_frame",
+                data: {
+                    id: "",
+                    status: null,
+                    userId: 0,
+                    showInput: false,
+                },
+                methods: {
+                    JustDoIt() {
+                        disappear($(".mask"), $(".status_frame"));
+                        setTimeout(() => {
+                            axios
+                                .put(`/room/status/${vue3.id}/${vue3.status}/${vue3.userId}`)
+                                .then((response) => {
+                                    var result = response.data;
+                                    alert(result.message);
+                                    if (result.code == 200) {
+                                        window.location.reload();
+                                    }
+                                })
+                                .catch((error) => {
+                                    alert("请求出错：" + error);
+                                });
+                        }, 400);
+                    },
+                    showing(status) {
+                        if (!status) {
+                            this.userId = 0;
+                        }
+                        this.showInput = status;
+                    },
+                },
+            });
+            var vue2 = new Vue({
+                el: ".edit_frame",
+                data: {
+                    id: "",
+                    items: [],
+                    // typeId: [],
+                    type: "",
+                    size: "",
+                    price: "",
+                    numOfGuests: "",
+                    method: "post",
+                },
+                methods: {
+                    DoIt() {
+                        setTimeout(() => {
+                            axios({
+                                method: vue2.method,
+                                url: "/room/crud",
+                                data: {
+                                    // typeId:vue2.typeId,
+                                    roomId: vue2.id,
+                                    hotelId: $("#hotelId").val(),
+                                    type: vue2.type,
+                                    size: vue2.size,
+                                    numOfGuests:vue2.numOfGuests,
+                                    price: vue2.price,
+                                },
+                            })
+                                .then((response) => {
+                                    var result = response.data;
+                                    alert(result.message);
+                                    if (result.code == 200) {
+                                        window.location.reload();
+                                    }
+                                })
+                                .catch((error) => {
+                                    alert("请求出错：" + error);
+                                });
+                        }, 400);
+                    },
+                },
+            });
+
+            $("#title").css("left", ($(".main").innerWidth() - $("#title").width()) / 2);
+            $(".status").each(function () {
+                switch ($(this).text()) {
+                    case "vacant":
+                        $(this).css("color", "green");
+                        break;
+                    case "booked":
+                        $(this).css("color", "orange");
+                        break;
+                    case "Checking in":
+                        $(this).css("color", "red");
+                        break;
+                    default:
+                        break;
+                }
+            });
+
+            $(".info").click(function () {
+                vue1.JustDoIt($(this).text());
+                appear($(".mask"), $(".info_frame"));
+            });
+
+            $("#back").click(() => {
+                disappear($(".mask"), $(".info_frame"));
+            });
+
+            $("#add_room").click(function () {
+                $(".edit_frame h2").text("添加房间");
+                // vue2.typeId="";
+                vue2.type = "";
+                vue2.size = "";
+                vue2.price = "";
+                vue2.numOfGuests = "";
+                vue2.method = "post";
+                appear($(".mask"), $(".edit_frame"));
+            });
+
+            $(".modify").click(function () {
+                var texts = [];
+                $(this)
+                    .parent()
+                    .siblings()
+                    .each(function () {
+                        texts.push($(this).text());
+                    });
+                $(".edit_frame h2").text("编辑房间");
+                vue2.id = texts[0];
+                vue2.type = texts[2];
+                vue2.size = texts[3].slice(0, -2);
+                vue2.price = texts[4].slice(1);
+                vue2.method = "put";
+                appear($(".mask"), $(".edit_frame"));
+            });
+
+            $(".delete").click(function () {
+                if (!confirm("确定要删除吗？")) {
+                    return;
+                }
+                $.ajax({
+                    url: "/room/crud/" + event.target.id,
+                    type: "DELETE",
+                    data: {},
+                    success: function (data) {
+                        alert(data.message);
+                        if (data.code == 200) {
+                            window.location.reload();
+                        }
+                    },
+                    error: function (textStatus, errorThrown) {
+                        alert("请求出错：" + textStatus + "，" + errorThrown);
+                    },
+                });
+            });
+
+            $("#cancel, #submit").click(() => {
+                disappear($(".mask"), $(".edit_frame"));
+            });
+
+            $(".status").click(function () {
+                var info = $(this).parent().find(".info");
+                vue3.id = event.target.id;
+                status = $(this).text();
+                $(".status_input").each(function () {
+                    if (status == $(this).attr("id")) {
+                        $(this).css("display", "none");
+                    } else {
+                        $(this).css("display", "block");
+                    }
+                });
+                if (info.text() != "Not Available") {
+                    vue3.userId = info.text();
+                } else {
+                    vue3.userId = "";
+                }
+                appear($(".mask"), $(".status_frame"));
+            });
+
+            $("#can").click(() => {
+                disappear($(".mask"), $(".status_frame"));
+            });
+        </script>
+    </body>
+</html>

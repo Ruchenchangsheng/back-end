@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>Login</title>
+        <link rel="icon" th:href="@{/static/favicon.ico}" />
+        <link rel="stylesheet" th:href="@{/static/bootstrap/css/bootstrap.min.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/login.css}" />
+        <script th:src="@{/static/js/vue.min.js}"></script>
+        <script th:src="@{/static/js/axios.min.js}"></script>
+        <script th:src="@{/static/js/jquery-3.3.1.min.js}"></script>
+        <script th:src="@{/static/bootstrap/js/bootstrap.bundle.js}"></script>
+    </head>
+
+    <body>
+        <div class="login">
+            <form @submit.prevent>
+                <h2 style="text-align: center; line-height: 1.5">Login</h2>
+                <div class="form-group">
+                    <label>UserName</label>
+                    <input type="text" autofocus v-model="username" class="form-control form-control-lg" />
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" v-model="password" class="form-control form-control-lg" />
+                </div>
+
+
+<!--                <div class="form-group form-check">-->
+<!--                    <input id="remember" class="form-check-input" type="checkbox" name="remember" v-model="remember" style="width: 17px; height: 17px" />-->
+<!--                    <label class="form-check-label" for="remember">保留3天登录状态</label>-->
+<!--                </div>-->
+
+                <button type="submit" :disabled="loading" @click="submitData" class="btn btn-primary btn-lg btn-block">
+                    Login
+                    <span v-show="loading" class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span>
+                </button>
+            </form>
+            <div id="bottom">Don't have an account yet? Click<a th:href="@{/register}">to regist</a></div>
+        </div>
+
+        <footer style="margin: 0; padding: 0; height: 40px; line-height: 40px; position: fixed; bottom: 0; width: 100%; text-align: center; background: #333; color: #fff; font-family: Arial; font-size: 12px; letter-spacing: 1px">
+            <div class="Copyright">Copyright © 2023-<script>document.write(new Date().getFullYear());</script> </div>
+        </footer>
+
+        <script>
+            var vue = new Vue({
+                el: ".login",
+                data: {
+                    username: "",
+                    password: "",
+                    loading: false,
+                    remember: false,
+                },
+                methods: {
+                    submitData: function () {
+                        vue.loading = true;
+                        axios
+                            .post("/user/login?remember=" + vue.remember, {
+                                username: vue.username,
+                                password: vue.password,
+                            })
+                            .then((response) => {
+                                var result = response.data;
+                                if (result.code == 200) {
+                                    window.location.href = "/index";
+                                } else {
+                                    vue.loading = false;
+                                    alert(result.message);
+                                }
+                            })
+                            .catch((error) => {
+                                vue.loading = false;
+                                alert("登录请求出错：" + error);
+                            });
+                    },
+                },
+            });
+        </script>
+    </body>
+</html>

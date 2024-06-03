@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>Hotel Showcase</title>
+        <link rel="icon" th:href="@{/static/favicon.ico}" />
+        <link rel="stylesheet" th:href="@{/static/bootstrap/css/bootstrap.min.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/main.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/viewer.min.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/hotel_display.css}" />
+        <script th:src="@{/static/js/vue.min.js}"></script>
+        <script th:src="@{/static/js/axios.min.js}"></script>
+        <script th:src="@{/static/js/jquery-3.3.1.min.js}"></script>
+        <script th:src="@{/static/js/viewer.min.js}"></script>
+        <script th:src="@{/static/bootstrap/js/bootstrap.bundle.js}"></script>
+        <script th:src="@{/static/admin/js/config.js}"></script>
+    </head>
+
+    <body>
+        <main>
+            <div class="main pt-4 pb-4" style="overflow-y: auto">
+                <div class="search" style="padding: 0; padding-bottom: 32px">
+                    <form class="form-inline float-left" th:action="@{/hotel/display}" method="get">
+                        <div class="form-group">
+                            <select name="option">
+                                <option value="hotel_name" selected>Name</option>
+                                <option value="address">address</option>
+                            </select>
+                            <input style="margin: 0 4px" type="text" name="value" value="" class="form-control" placeholder="Enter keywords" />
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="iconfont"> </i>Search</button>
+                    </form>
+                </div>
+                <div class="info" style="height: 100%; overflow: auto">
+                    <div class="hang">
+                        <div class="col-4" th:each="hotel : ${list}">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div>
+                                        <a title="Click for hotel room information" th:href="@{/hotel/{s}/room/display/1(s=${hotel.hotelId},option=room_id,value=)}"><h5 th:text="${hotel.hotelName}">Hotel Name</h5></a>
+                                        <div class="address">
+                                            <span th:utext="|<b>address：</b>${hotel.address}|">address</span><br />
+                                            <span th:utext="|<b>Phone Number：</b>${hotel.phone}|">phone</span>
+                                        </div>
+                                        <p th:text="${hotel.message}">message</p>
+                                    </div>
+                                    <div class="pic">
+                                        <div style="position: relative; display: inline-block" th:object="${hotel.getURL()}">
+                                            <img title="Click on the preview image" alt="Hotel Thumbnails" height="150" th:src="@{*{[0]}}" />
+                                            <span class="img_num" tabindex="0" th:text="|*{length}|"></span>
+                                        </div>
+                                        <img style="display: none" height="0" th:src="@{${url}}" th:each="url : ${hotel.getPicURL()}" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <script>
+            $(".pic").viewer();
+        </script>
+    </body>
+</html>

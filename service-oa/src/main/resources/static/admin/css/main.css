@@ -1,0 +1,191 @@
+@import "iconfont.css";
+html,
+body {
+  height: 100%;
+}
+* {
+  /* border-radius: 0 !important; */
+  text-decoration: none;
+}
+ul {
+  margin: 0;
+  padding: 0;
+}
+ul li {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+::-webkit-scrollbar {
+  width: 3px;
+  background-color: #eee;
+}
+::-webkit-scrollbar-thumb {
+  background: #6897ff;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-track-piece {
+  background: transparent;
+}
+* {
+  box-sizing: border-box;
+}
+.row {
+  margin: 0;
+}
+.row .col {
+  padding: 0;
+}
+body,
+html {
+  height: 100%;
+  color: #999;
+}
+body main,
+html main {
+  padding: 20px;
+  background-color: #eaeaea;
+  height: 100%;
+}
+body main > div,
+html main > div {
+  background-color: #fff;
+  height: 100%;
+}
+body main .main,
+html main .main {
+  padding: 0 20px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  /*列  垂直方向*/
+  height: 100%;
+  /*全屏效果  该元素及其父元素及html、body height：100%*/
+}
+body main .main form,
+html main .main form {
+  height: 100%;
+}
+body main .main .search,
+html main .main .search {
+  padding: 20px 0;
+  overflow: hidden;
+}
+body main .main .table-box,
+html main .main .table-box {
+  flex: 1;
+  overflow-y: auto;
+}
+body main .main .title-box,
+html main .main .title-box {
+  padding: 15px 0;
+  width: 100%;
+  border-bottom: 1px solid #ccc;
+}
+body main .main .title-box h5,
+html main .main .title-box h5 {
+  float: left;
+  color: #999;
+  margin: 0;
+}
+body main .main .form-box,
+html main .main .form-box {
+  padding: 20px 0px;
+  flex: 1;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+body main .main .submit-box,
+html main .main .submit-box {
+  padding: 20px 0;
+  width: 100%;
+}
+body main .main .page,
+html main .main .page {
+  padding: 20px 0;
+  width: 100%;
+}
+body main .main .page nav,
+html main .main .page nav {
+  float: right;
+}
+td button {
+    padding: 7px 11px;
+    margin: 0 5px;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-size: 14px;
+}
+.modify {
+    border-radius: 4px;
+    background-color: #00cc4a;
+}
+.modify:hover {
+    background-color: #00dd4a;
+}
+.delete {
+    border-radius: 4px;
+    background-color: #ff0033;
+}
+.delete:hover {
+    background-color: #ff6666;
+}
+.blue {
+  border-radius: 4px;
+  background-color: #007bff;
+}
+.blue:hover {
+  background-color: #0069d9;
+}
+.imgBiMG {
+  height: 200px;
+  display: block;
+}
+.uploadDIv {
+  width: 200px;
+  height: 200px;
+  background-color: #edf0f2;
+  font-size: 40px;
+  color: #bfbfbf;
+  text-align: center;
+  line-height: 200px;
+  position: relative;
+  float: left;
+}
+.uploadDIv input {
+  width: inherit;
+  height: inherit;
+  opacity: 0;
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  z-index: 4;
+  cursor: pointer;
+  padding: 0;
+}
+.form-group select {
+  background-color: #f2f2f2;
+  border: 1px solid #ddd;
+  padding: 3px;
+  font-family: Arial, sans-serif;
+  font-size: 15px;
+  height: 38px;
+  color: #495057;
+}
+.form-group select:hover {
+  background-color: #e0e0e0;
+  border-color: #999;
+}
+.form-group select::after {
+  content: "\25BE";
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  color: #666;
+  pointer-events: none;
+}
+.form-group select option {
+  background-color: #fff;
+  color: #333;
+}

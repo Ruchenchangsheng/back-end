@@ -1,0 +1,145 @@
+h2 {
+    display: block;
+    font-size: 1.5em;
+    margin-block-start: 0.83em;
+    margin-block-end: 0.83em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    font-weight: bold;
+    color: black;
+}
+.register {
+    display: none;
+    width: 400px;
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+}
+.header {
+    text-align: center;
+    border-bottom: 1px solid #dedede;
+}
+.frame-body {
+    max-height: 600px;
+    overflow: auto;
+    padding: 20px;
+}
+.container {
+    height: 40px;
+    width: 250px;
+    margin: 10px 0;
+    transform: translate(30%, -10%);
+}
+.box {
+    margin: 15px auto;
+}
+.body input:not([type="radio"]) {
+    width: 100%;
+    height: 100%;
+    outline: none;
+    border: none;
+    box-sizing: border-box;
+    background-color: white;
+    color: #000000;
+    caret-color: #000000;
+    font-size: 16px;
+}
+.body input:not([type="radio"])::placeholder {
+    color: #000000;
+}
+.container span {
+    position: absolute;
+    content: "";
+    display: block;
+    background-color: #000000;
+    transition: transform 0.1s ease-in-out;
+}
+.top,
+.bottom {
+    left: 0px;
+    right: 0px;
+    height: 2px;
+}
+.left,
+.right {
+    top: 0px;
+    bottom: 0px;
+    width: 2px;
+    transform: scaleY(0);
+}
+.top {
+    top: 0px;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition-delay: 0.2s;
+}
+.left {
+    left: 0px;
+    transform-origin: bottom center;
+    transition-delay: 0.3s;
+}
+.bottom {
+    bottom: 0px;
+}
+.right {
+    right: 0px;
+    transform-origin: top center;
+    transition-delay: 0.1s;
+}
+.body input:focus ~ .right {
+    transform: scaleY(1);
+    transform-origin: bottom center;
+}
+.body input:focus ~ .left {
+    transform: scaleY(1);
+    transform-origin: top center;
+}
+.body input:focus ~ .top {
+    transform: scaleY(1);
+    transform-origin: right center;
+}
+.footer {
+    padding: 20px;
+    border-top: 1px solid #dedede;
+    display: flex;
+    justify-content: space-around;
+}
+.mask {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    opacity: 0.5;
+}
+.table th,
+.table td {
+    vertical-align: middle;
+}
+.disabled {
+    background-color: darkgray;
+}
+img {
+    cursor: pointer;
+    border-radius: 4px;
+}
+.img_num {
+    cursor: pointer;
+    margin: 0;
+    border: 0;
+    vertical-align: baseline;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 4px 0 4px 0;
+    padding: 0 5px;
+    height: 20px;
+    line-height: 20px;
+    color: #fff;
+    font-size: 12px;
+}

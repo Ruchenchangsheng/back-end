@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title></title>
+        <link rel="icon" th:href="@{/static/favicon.ico}" />
+        <link rel="stylesheet" th:href="@{/static/bootstrap/css/bootstrap.min.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/main.css}" />
+        <link rel="stylesheet" th:href="@{/static/webuploader/webuploader.css}" />
+        <link rel="stylesheet" th:href="@{/static/webuploader/image-upload/style.css}" />
+        <script th:src="@{/static/js/vue.min.js}"></script>
+        <script th:src="@{/static/js/axios.min.js}"></script>
+        <script th:src="@{/static/js/jquery-3.3.1.min.js}"></script>
+        <script th:src="@{/static/bootstrap/js/bootstrap.bundle.js}"></script>
+        <script th:src="@{/static/admin/js/config.js}"></script>
+        <script th:src="@{/static/admin/js/upload.js}"></script>
+        <script th:src="@{/static/webuploader/webuploader.js}"></script>
+    </head>
+
+    <body>
+        <main>
+            <div class="main">
+                <div class="title-box">
+                    <h5>Registered </h5>
+                </div>
+                <div class="form-box">
+                    <div class="row">
+                        <div class="col-5">
+                            <form>
+                                <input id="uid" type="hidden" th:value="${session.user.uid}" />
+                                <div class="form-group">
+                                    <label>Hotel Name</label>
+                                    <input type="text" name="hotelName" v-model="hotelName" class="form-control" />
+                                    <small class="form-text text-muted"></small>
+                                </div>
+                                <div class="form-group">
+                                    <label>address</label>
+                                    <input type="text" name="address" v-model="address" class="form-control" />
+                                    <small class="form-text text-muted"></small>
+                                </div>
+                                <div class="form-group">
+                                    <label>Phone Number</label>
+                                    <input type="text" name="phone" v-model="phone" class="form-control" />
+                                    <small class="form-text text-muted"></small>
+                                </div>
+                                <div class="form-group">
+                                    <label>Hotel Description</label>
+                                    <textarea rows="7" name="phone" class="form-control" v-model="message" style="resize: none"></textarea>
+                                    <small class="form-text text-muted"></small>
+                                </div>
+                                <div class="form-group">
+                                    <label>Hotel Img</label>
+                                    <div id="wrapper" type="hotel">
+                                        <div id="container">
+                                            <div id="uploader">
+                                                <div class="queueList">
+                                                    <div id="dndArea" class="placeholder">
+                                                        <div id="filePicker"></div>
+                                                        <p>Or drag your photos here to select up to 300 at a time</p>
+                                                    </div>
+                                                </div>
+                                                <div class="statusBar" style="display: none">
+                                                    <div class="progress">
+                                                        <span class="text">0%</span>
+                                                        <span class="percentage"></span>
+                                                    </div>
+                                                    <div class="info"></div>
+                                                    <div class="btns">
+                                                        <div id="filePicker2"></div>
+                                                        <!-- <div class="uploadBtn">开始上传</div> -->
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <small class="form-text text-muted"></small>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="submit-box" style="border-top: 1px solid #ccc">
+                    <button type="submit" class="btn btn-primary uploadBtn">Submit</button>
+                    <button type="button" onclick="window.history.back()" class="btn btn-outline-secondary">Cancel</button>
+                    <span style="margin-left: 10px">If you are unable to upload a photo successfully, please contact an administrator as soon as possible!</span>
+                </div>
+            </div>
+        </main>
+        <script>
+            var uploader;
+            var state = "pedding"; // pedding, ready, uploading, confirm, done, finish.
+            var photoPath = [];
+
+            function callback(isExecute) {
+                if (isExecute) {
+                    var index = photoPath[0].lastIndexOf("\\");
+                    var tempPath = photoPath[0].substring(0, index);
+                    photoPath.forEach((path) => {
+                        tempPath += "|" + path.substring(index + 1);
+                    });
+                    console.log(tempPath);
+                    vue.JustDoIt(tempPath);
+                } else {
+                    window.location.reload();
+                }
+            }
+
+            var vue = new Vue({
+                el: ".col-5",
+                data: {
+                    hotelName: "",
+                    address: "",
+                    phone: "",
+                    message: "",
+                },
+                methods: {
+                    JustDoIt(tempPath) {
+                        axios
+                            .post("/hotel/registeration/register", {
+                                hotelName: vue.hotelName,
+                                address: vue.address,
+                                managerId: parseInt($("#uid").val()),
+                                phone: vue.phone,
+                                message: vue.message,
+                                photo: tempPath,
+                            })
+                            .then((response) => {
+                                var result = response.data;
+                                alert(result.message);
+                                if (result.code == 200) {
+                                    window.history.back();
+                                }
+                            })
+                            .catch((error) => {
+                                alert("请求出错：" + error);
+                            });
+                    },
+                },
+            });
+        </script>
+    </body>
+</html>

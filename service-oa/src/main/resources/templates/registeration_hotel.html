@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>Hotel Registration</title>
+        <link rel="icon" th:href="@{/static/favicon.ico}" />
+        <link rel="stylesheet" th:href="@{/static/bootstrap/css/bootstrap.min.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/main.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/viewer.min.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/user_index.css}" />
+        <script th:src="@{/static/js/vue.min.js}"></script>
+        <script th:src="@{/static/js/axios.min.js}"></script>
+        <script th:src="@{/static/js/jquery-3.3.1.min.js}"></script>
+        <script th:src="@{/static/js/viewer.min.js}"></script>
+        <script th:src="@{/static/bootstrap/js/bootstrap.bundle.js}"></script>
+        <script th:src="@{/static/admin/js/script.js}"></script>
+    </head>
+
+    <body>
+        <main>
+            <div class="main">
+                <div class="title-box">
+                    <table style="text-align: center">
+                        <thead style="color: black">
+                            <tr>
+                                <th :width="width[0]" scope="col">ID</th>
+                                <th th:if="${type == 'pending'}" :width="width[1]" scope="col">Img</th>
+                                <th :width="width[2]" scope="col">Hotel Name</th>
+                                <th :width="width[3]" scope="col">Hotel Manager</th>
+                                <th :width="width[4]" scope="col">address</th>
+                                <th :width="width[5]" scope="col">Phone Number</th>
+                                <th :width="width[6]" scope="col">Application Time</th>
+                                <th :width="width[7]" scope="col">Application Status</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+                <div class="table-box" th:style="|display: ${#lists.isEmpty(list) ? 'flex' : 'block'};|">
+                    <h1 th:if="${#lists.isEmpty(list)}" class="display-4" style="margin: auto">No application for registration</h1>
+                    <table class="table" style="text-align: center" th:unless="${#lists.isEmpty(list)}">
+                        <tbody>
+                            <tr th:each="registeration : ${list}">
+                                <th class="id" th:text="${registeration.id}"></th>
+                                <td th:if="${type == 'pending'}" class="pic">
+                                    <div style="position: relative; display: inline-block" th:object="${registeration.getURL()}">
+                                        <img alt="Hotel Thumbnails" height="72px" th:src="@{*{[0]}}" />
+                                        <span class="img_num" tabindex="0" th:text="|*{length}|"></span>
+                                    </div>
+                                    <img style="display: none" height="0" th:src="@{${url}}" th:each="url : ${registeration.getPicURL()}" />
+                                </td>
+                                <td th:text="${registeration.hotelName}"></td>
+                                <td th:text="${registeration.manager}"></td>
+                                <td th:text="${registeration.address}"></td>
+                                <td th:text="${registeration.phone}"></td>
+                                <td th:text="${registeration.registerTimeToString()}"></td>
+                                <td style="padding: 0.4rem" th:if="${registeration.status == null}">
+                                    <button class="modify" :disabled="Lock" th:@click="|JustDoIt(${registeration.id},1)|">
+                                        Passed
+                                        <span v-show="loading_a" class="spinner-border spinner-border-sm text-light" role="status" aria-hidden="true"></span>
+                                    </button>
+                                    <button class="delete" :disabled="Lock" th:@click="|JustDoIt(${registeration.id},0)|">
+                                        Rejection
+                                        <span v-show="loading_b" class="spinner-border spinner-border-sm text-light" role="status" aria-hidden="true"></span>
+                                    </button>
+                                </td>
+                                <td class="status" th:unless="${registeration.status == null}"><b th:text="${registeration.status== true ? 'Adopted' : 'Unsuccessful'}"></b></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="submit-box" style="border-top: 1px solid #ccc">
+                    <h5 th:text="|${list.size}|"></h5>
+                </div>
+            </div>
+        </main>
+
+        <script>
+            var vue = new Vue({
+                el: ".main",
+                data: {
+                    width: [50.5833, 235.99, 158.438, 109.688, 417.24, 181.094, 257.271, 209.031],
+                    Lock: false,
+                    loading_a: false,
+                    loading_b: false,
+                },
+                methods: {
+                    JustDoIt(id, status) {
+                        this.Lock = true;
+                        if (status) {
+                            this.loading_a = true;
+                        } else {
+                            this.loading_b = true;
+                        }
+                        axios
+                            .get(`/hotel/registeration/handle/${id}/${status}`)
+                            .then((response) => {
+                                var result = response.data;
+                                vue.Lock = false;
+                                vue.loading_a = false;
+                                vue.loading_b = false;
+                                if (result.code == 200) {
+                                    alert(status ? "已通过该注册申请！" : "已拒绝该注册申请！");
+                                    window.location.reload();
+                                } else {
+                                    alert(result.message);
+                                }
+                            })
+                            .catch((error) => {
+                                alert("请求出错：" + error);
+                            });
+                    },
+                },
+            });
+
+            $(".pic").viewer();
+
+            $(".status").each(function () {
+                switch ($(this).text()) {
+                    case "Adopted":
+                        $(this).css("color", "green");
+                        break;
+                    case "Unsuccessful":
+                        $(this).css("color", "red");
+                        break;
+                    default:
+                        break;
+                }
+            });
+        </script>
+        <script th:if="${type == 'history'}">
+            $(function () {
+                var width = [];
+                $("tbody > tr:first th, tbody > tr:first td").each(function () {
+                    width.push($(this).innerWidth());
+                    if ($(this).hasClass("id")) {
+                        width.push(null);
+                    }
+                });
+                if (width.length != 0) {
+                    vue.width = width;
+                }
+            });
+        </script>
+        <script th:if="${type == 'pending'}">
+            $(".pic img").on("load", function () {
+                var width = [];
+                $("tbody > tr:first th, tbody > tr:first td").each(function () {
+                    width.push($(this).innerWidth());
+                });
+                if (width.length != 0) {
+                    vue.width = width;
+                }
+            });
+        </script>
+    </body>
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>Hotel Rooms</title>
+        <link rel="icon" th:href="@{/static/favicon.ico}" />
+        <link rel="stylesheet" th:href="@{/static/bootstrap/css/bootstrap.min.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/main.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/viewer.min.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/user_index.css}" />
+        <script th:src="@{/static/js/vue.min.js}"></script>
+        <script th:src="@{/static/js/axios.min.js}"></script>
+        <script th:src="@{/static/js/jquery-3.3.1.min.js}"></script>
+        <script th:src="@{/static/js/viewer.min.js}"></script>
+        <script th:src="@{/static/bootstrap/js/bootstrap.bundle.js}"></script>
+        <script th:src="@{/static/admin/js/config.js}"></script>
+        <style>
+            .status {
+                font-size: 18px;
+                font-weight: bold;
+            }
+            .price {
+                color: orangered;
+                font-size: 24px;
+            }
+            .pic {
+                width: 15%;
+            }
+            #title {
+                color: black;
+                font-size: 24px;
+                font-weight: bold;
+                position: absolute;
+                top: 19px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <main>
+            <div class="main" style="overflow-y: hidden">
+                <div class="search" style="border-bottom: 1px solid #ccc">
+                    <form th:action="@{/hotel/{id}/room/display/1(id=${hotelId})}" class="form-inline float-left" method="get">
+                        <div class="form-group">
+                            <select name="option">
+                                <option value="room_id" th:selected="${map['option'] == 'room_id'}">ID</option>
+                                <option value="type" th:selected="${map['option'] == 'type'}">Room Type</option>
+                            </select>
+                            <input style="margin: 0 4px" type="text" name="value" th:value="${map['value']}" class="form-control" placeholdeclassr="Enter keywords" />
+                        </div>
+                        <button class="btn btn-primary" type="submit"><i class="iconfont"> </i>Search</button>
+                    </form>
+                    <span id="title" style="left: 46%">Room List</span>
+                </div>
+<!--                <div class="table-box" th:style="|display: ${#lists.isEmpty(page.list) ? 'flex' : 'block'};|">-->
+                <div class="table-box" th:style="${#lists.isEmpty(page.list)} ? 'display: flex;' : 'display: block;'">
+
+                <h1 th:if="${#lists.isEmpty(page.list)}" class="display-4" style="margin: auto">No room available</h1>
+                    <table th:unless="${#lists.isEmpty(page.list)}" class="table" style="text-align: center">
+                        <thead>
+                            <tr>
+                                <th>Room No.</th>
+                                <th>Img</th>
+                                <th>Room Type</th>
+                                <th>Size</th>
+                                <th>Price</th>
+                                <th>Manipulate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="room : ${page.list}">
+                                <th th:text="${room.roomId}">84</th>
+                                <td class="pic">
+                                    <div style="position: relative; display: inline-block" th:object="${room.getURL()}">
+                                        <img alt="房间缩略图" height="80px" th:src="@{*{[0]}}" />
+                                        <span class="img_num" tabindex="0" th:text="|*{length}|"></span>
+                                    </div>
+                                    <img style="display: none" height="2px" th:src="@{${url}}" th:each="url : ${room.getPicURL()}" />
+                                </td>
+                                <td th:text="${room.type}"></td>
+                                <td th:utext="|${room.size}m<sup>2</sup>|">25</td>
+                                <td th:text="|¥${room.price}|" class="price">564</td>
+                                <td style="padding: 0.1rem">
+                                    <button class="reverse btn btn-primary" th:unless="${#lists.contains(reserveList, room.roomId)}" th:@click="|JustDoIt(${room.roomId})|"><i class="iconfont">&#xe6d5; </i>booking</button>
+                                    <button class="reverse btn btn-secondary" th:if="${#lists.contains(reserveList, room.roomId)}" @click="disabled"><i class="iconfont">&#xe6d9; </i>Waiting to be audited</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="page">
+                    <ul class="pagination">
+                        <li class="page-item"><a class="page-link" th:if="${page.hasPreviousPage}" th:href="@{/hotel/{id}/room/display/1(id=${hotelId},option=${map['option']},value=${map['value']})}">Index</a></li>
+                        <li class="page-item"><a class="page-link" th:if="${page.hasPreviousPage}" th:href="@{/hotel/{id}/room/display/{s}(id=${hotelId},s=${page.prePage},option=${map['option']},value=${map['value']})}">&lt;&lt;</a></li>
+                        <li class="page-item" th:each="num : ${page.navigatepageNums}"><a class="page-link" th:href="@{/hotel/{id}/room/display/{s}(id=${hotelId},s=${num},option=${map['option']},value=${map['value']})}" th:text="${num}"></a></li>
+                        <li class="page-item"><a class="page-link" th:if="${page.hasNextPage}" th:href="@{/hotel/{id}/room/display/{s}(id=${hotelId},s=${page.nextPage},option=${map['option']},value=${map['value']})}">&gt;&gt;</a></li>
+                        <li class="page-item"><a class="page-link" th:if="${page.hasNextPage}" th:href="@{/hotel/{id}/room/display/{s}(id=${hotelId},s=${page.pages},option=${map['option']},value=${map['value']})}">末页</a></li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+        <script th:inline="javascript">
+            var vue = new Vue({
+                el: ".main",
+                data: {},
+                methods: {
+                    JustDoIt(id) {
+                        this.Lock = true;
+                        axios
+                            .post("/room/reservation/reserve", {
+                                userId: /*[[${session.user.uid}]]*/ null,
+                                roomId: id,
+                                hotelId: /*[[${hotelId}]]*/ null,
+                            })
+                            .then((response) => {
+                                vue.Lock = false;
+                                var result = response.data;
+                                alert(result.message);
+                                if (result.code == 200) {
+                                    window.location.reload();
+                                }
+                            })
+                            .catch((error) => {
+                                alert("请求出错：" + error);
+                            });
+                    },
+                    disabled() {
+                        alert("Booking request has been submitted, please wait for review");
+                    },
+                },
+            });
+        </script>
+        <script>
+            $(".pic").viewer();
+            $("#title").css("left", ($(".main").innerWidth() - $("#title").width()) / 2);
+            $(".status").each(function () {
+                switch ($(this).text()) {
+                    case "vacant":
+                        $(this).css("color", "green");
+                        break;
+                    case "booked":
+                        $(this).css("color", "orange");
+                        break;
+                    case "Checking in":
+                        $(this).css("color", "red");
+                        break;
+                    default:
+                        break;
+                }
+            });
+        </script>
+    </body>
+</html>

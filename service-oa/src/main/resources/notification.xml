@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="-8" />
+        <title>酒店注册通知</title>
+        <style>
+            /* 添加一些样式以提高邮件的可读性 */
+            body {
+                font-family: Arial, sans-serif;
+            }
+            .container {
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f2f2f2;
+            }
+            h1 {
+                text-align: center;
+                color: #333333;
+                margin-top: 0;
+            }
+            p {
+                margin: 20px 0;
+            }
+            .code p {
+                margin: 10px 0;
+            }
+            .code {
+                /* text-align: center; */
+                font-size: 18px;
+                font-weight: bold;
+                background-color: #ffffff;
+                border: 2px solid #333333;
+                padding: 0 10px;
+                /* max-width: 300px; */
+                margin: 0 auto;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>酒店注册通知</h1>
+            <p>尊敬的经营者！</p>
+            ?
+            <p>感谢您的注册，祝您业务兴旺！</p>
+        </div>
+    </body>
+</html>

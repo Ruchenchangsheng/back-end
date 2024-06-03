@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hualiang.core.mapper.HotelMapper">
+
+    <!-- List<Hotel> getAllHotel(Map<String,String> option); -->
+    <select id="getAllHotel" resultType="Hotel">
+        select hotel.*, real_name manager from hotel left join user on manager_id = uid 
+        <where>
+            <foreach collection="map" index="key" item="value">
+                <if test="key != 'option' and key != 'value'">
+                    and ${key} <!-- 限定条件 -->
+                    <choose>
+                        <when test="value == 'null'">
+                            is null
+                        </when>
+                        <when test="value == 'not null'">
+                            is not null
+                        </when>
+                        <otherwise>
+                            = #{value}
+                        </otherwise>
+                    </choose>
+                </if>
+            </foreach>
+            and ${map.option} <!-- 模糊查询 -->
+            <if test="map.value == 'null'">
+                is null
+            </if>
+            <if test="map.value != 'null'">
+                like concat('%',#{map.value},'%')
+            </if>
+        </where>
+    </select>
+
+    <select id="selectAllHotels" resultType="Hotel">
+        SELECT * FROM hotel
+    </select>
+
+    <select id="findAvailableHotels" resultType="Hotel">
+        SELECT DISTINCT h.*
+        FROM hotel h
+                 LEFT JOIN reservation res ON h.hotel_id = res.hotel_id
+                 LEFT JOIN room ro ON res.room_id = ro.room_id
+        WHERE h.address = #{address}
+            AND res.start_date IS NULL
+           OR NOT EXISTS (
+                SELECT 1
+                FROM reservation re
+                WHERE re.hotel_id = h.hotel_id
+                  AND (#{startDate} BETWEEN re.start_date AND re.end_date OR #{endDate} BETWEEN re.start_date AND re.end_date)
+            )
+            AND ro.num_of_guests >= #{numOfGuests}
+    </select>
+    
+</mapper>

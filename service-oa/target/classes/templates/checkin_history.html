@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Historical Check-in Records</title>
+    <link rel="icon" th:href="@{/static/favicon.ico}" />
+    <link rel="stylesheet" th:href="@{/static/bootstrap/css/bootstrap.min.css}" />
+    <link rel="stylesheet" th:href="@{/static/admin/css/main.css}" />
+    <script th:src="@{/static/js/vue.min.js}"></script>
+    <script th:src="@{/static/js/axios.min.js}"></script>
+    <script th:src="@{/static/js/jquery-3.3.1.min.js}"></script>
+    <script th:src="@{/static/bootstrap/js/bootstrap.bundle.js}"></script>
+    <script th:src="@{/static/admin/js/config.js}"></script>
+</head>
+
+<body>
+<main>
+    <div class="main">
+        <div class="search" style="display: flex; flex-direction: column; padding-bottom: 0">
+            <div style="display: flex; margin-bottom: 20px; justify-content: space-between">
+                <button type="button" class="btn btn-primary" onclick="window.history.back()"><i class="iconfont">&#xe66f; </i>Back</button>
+                <form class="form-inline float-left" th:action="@{'/room/checkin/history/'+${id}}" method="get">
+                    <div class="form-group">
+                        <select name="option">
+                            <option value="user_id" selected>UID</option>
+                            <option value="create_time">Reservation Time</option>
+                            <option value="checkin_time">Check-in Time</option>
+                            <option value="checkout_time">Check-out Time</option>
+                        </select>
+                        <input style="margin: 0 4px" type="text" name="value" value="" class="form-control" placeholder=" Enter keyword" />
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="iconfont"> </i> Search</button>
+                </form>
+            </div>
+            <table class="table" style="text-align: center; margin-bottom: 0">
+                <thead style="color: black">
+                <tr>
+                    <th :width="width[0]" scope="col"> ID</th>
+                    <th :width="width[1]" scope="col"> Guest UID</th>
+                    <th :width="width[2]" scope="col"> Reservation Time</th>
+                    <th :width="width[3]" scope="col"> Check-in Time</th>
+                    <th :width="width[4]" scope="col"> Check-out Time</th>
+                    <th :width="width[5]" scope="col"> Action</th>
+                </tr>
+                </thead>
+            </table>
+        </div>
+        <div class="table-box" th:style="|display: ${#lists.isEmpty(list) ? 'flex' : 'block'};|">
+            <h1 th:if="${#lists.isEmpty(list)}" class="display-4" style="margin: auto"> No check-in records</h1>
+            <table class="table" style="text-align: center" th:unless="${#lists.isEmpty(list)}">
+                <tbody>
+                <tr th:each="reservation : ${list}">
+                    <th th:text="${reservation.id}">1</th>
+                    <td width="106" th:text="${reservation.userId}"></td>
+                    <td th:text="${reservation.createTimeToString()}"></td>
+                    <td th:text="${reservation.checkinTimeToString()}"></td>
+                    <td th:text="${reservation.checkoutTimeToString() ?: 'Not Available'}"></td>
+                    <td style="padding: 0.4rem">
+                        <button th:id="${reservation.id}" class="delete btn btn-danger">Delete</button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="submit-box" style="border-top: 1px solid #ccc">
+            <h5 th:text="|${list.size}lines|"></h5>
+        </div>
+    </div>
+</main>
+
+        <script>
+            var vue = new Vue({
+                el: ".table",
+                data: {
+                    width: [77.9688, 169.042, 396.5, 396.5, 396.5, 188.156],
+                },
+            });
+
+            $(".delete").click(function () {
+                if (!confirm("确定要删除吗？")) {
+                    return;
+                }
+                $.ajax({
+                    url: "/room/checkin/delete/" + event.target.id,
+                    type: "DELETE",
+                    data: {},
+                    success: function (data) {
+                        alert(data.message);
+                        if (data.code == 200) {
+                            window.location.reload();
+                        }
+                    },
+                    error: function (textStatus, errorThrown) {
+                        alert("请求出错：" + textStatus + "，" + errorThrown);
+                    },
+                });
+            });
+
+            $(function () {
+                var width = [];
+                $("tbody > tr:first th, tbody > tr:first td").each(function () {
+                    width.push($(this).innerWidth());
+                });
+                if (width.length != 0) {
+                    vue.width = width;
+                }
+            });
+        </script>
+    </body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>Register</title>
+        <link rel="icon" th:href="@{/static/favicon.ico}" />
+        <link rel="stylesheet" th:href="@{/static/bootstrap/css/bootstrap.min.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/register.css}" />
+        <script th:src="@{/static/js/vue.min.js}"></script>
+        <script th:src="@{/static/js/axios.min.js}"></script>
+        <script th:src="@{/static/js/jquery-3.3.1.min.js}"></script>
+        <script th:src="@{/static/bootstrap/js/bootstrap.bundle.js}"></script>
+        <script th:src="@{/static/admin/js/config.js}"></script>
+    </head>
+
+    <body>
+        <div class="register">
+            <form @submit.prevent>
+                <h2 style="text-align: center; line-height: 1">Register</h2>
+                <div class="form-group">
+                    <label>UserName</label>
+                    <input type="text" v-model="username" class="form-control form-control-lg" />
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" v-model="password" class="form-control form-control-lg" />
+                </div>
+                <div id="email" class="form-group">
+                    <label>Email</label><br />
+                    <input type="email" v-model="email" class="form-control form-control-lg" />
+                    <button type="button" class="btn-primary" @click="sendMail" :disabled="sending">
+                        <span v-show="loading2" class="spinner-border spinner-border-sm text-light" role="status" aria-hidden="true"></span>
+                        <span v-show="!loading2">{{text}}</span>
+                    </button>
+                </div>
+                <div id="code" class="form-group">
+                    <label>Code</label>
+                    <input type="text" class="form-control form-control-lg" v-model="code" />
+                </div>
+
+                <div id="identify" class="form-group">
+
+                    <label>Role：</label>
+
+                    <input type="radio" id="Guest" name="checkbox" value="3" v-model="role" />
+                    <label for="Guest">patron</label>
+
+                    <input type="radio" id="Manager" name="checkbox" value="2" v-model="role" />
+                    <label for="Manager">Hotel Manager</label>
+
+                </div>
+
+
+                <button type="submit" @click="submitData" :disabled="loading" class="btn btn-primary btn-lg btn-block">
+                    <span v-show="loading" class="spinner-grow spinner-grow-sm" role="status" aria-hidden="true"></span>
+                    Register
+                </button>
+            </form>
+        </div>
+
+        <footer style="margin: 0; padding: 0; height: 40px; line-height: 40px; position: fixed; bottom: 0; width: 100%; text-align: center; background: #333; color: #fff; font-family: Arial; font-size: 12px; letter-spacing: 1px">
+            <div class="Copyright">Copyright © 2023-<script>document.write(new Date().getFullYear());</script> </div>
+        </footer>
+
+        <script>
+            var vue = new Vue({
+                el: ".register",
+                data: {
+                    text: "Verify Email",
+                    count: 60,
+                    sending: false,
+                    loading: false, // 锁
+                    loading2: false, // 锁
+                    username: "",
+                    password: "",
+                    email: "",
+                    role: "3",
+                    code: "",
+                },
+                methods: {
+                    sendMail() {
+                        if (this.email === "") {
+                            alert("邮箱不能为空！");
+                            return;
+                        }
+                        this.loading2 = true;
+                        axios
+                            .get("/user/email?email=" + this.email)
+                            .then((response) => {
+                                this.loading2 = false;
+                                var result = response.data;
+                                if (result.code == 200) {
+                                    commonUtil.message(result.message);
+                                    this.sending = true;
+                                    this.text = `(${this.count})`;
+                                    const timer = setInterval(() => {
+                                        this.text = `(${--this.count})`;
+                                        if (this.count <= 0) {
+                                            clearInterval(timer);
+                                            this.count = 60;
+                                            this.sending = false;
+                                            this.text = "重新发送";
+                                        }
+                                    }, 1000);
+                                } else {
+                                    this.text = "重新发送";
+                                    commonUtil.message(result.message, "danger");
+                                }
+                            })
+                            .catch((error) => {
+                                alert("邮箱验证请求出错：" + error);
+                                this.count = 0;
+                            });
+                    },
+                    submitData() {
+                        if (this.username === "" || this.password === "") {
+                            alert("用户名或密码不能为空！");
+                            return;
+                        }
+                        if ($("#code input").val() != this.code) {
+                            alert("验证码错误或已失效！");
+                            return;
+                        }
+                        this.loading = true;
+                        axios
+                            .post("/user/register?code=" + vue.code, {
+                                username: vue.username,
+                                password: vue.password,
+                                email: vue.email,
+                                rid: vue.role,
+                            })
+                            .then((response) => {
+                                vue.loading = false;
+                                var result = response.data;
+                                alert(result.message);
+                                if (result.code == 200) {
+                                    window.location.href = "/";
+                                }
+                            })
+                            .catch((error) => {
+                                vue.loading = false;
+                                alert("注册请求出错：" + error);
+                            });
+                    },
+                },
+            });
+        </script>
+    </body>
+</html>

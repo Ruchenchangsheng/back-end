@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>Management facilities</title>
+        <link rel="icon" th:href="@{/static/favicon.ico}" />
+        <link rel="stylesheet" th:href="@{/static/bootstrap/css/bootstrap.min.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/main.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/user_index.css}" />
+        <script th:src="@{/static/js/vue.min.js}"></script>
+        <script th:src="@{/static/js/axios.min.js}"></script>
+        <script th:src="@{/static/js/jquery-3.3.1.min.js}"></script>
+        <script th:src="@{/static/bootstrap/js/bootstrap.bundle.js}"></script>
+        <script th:src="@{/static/admin/js/config.js}"></script>
+    </head>
+
+    <body>
+        <style>
+            .info {
+                height: 100%;
+                overflow: auto;
+                margin-top: 19px;
+                display: flex;
+                flex-wrap: wrap;
+                /* align-content: flex-start; */
+                justify-content: space-evenly;
+            }
+            .card {
+                min-width: 98px;
+                margin-bottom: 32px;
+            }
+            .card h5 {
+                color: black;
+                font-weight: bold;
+            }
+            .card-body:hover {
+                cursor: pointer;
+                background-color: #ddd;
+            }
+            .card-body:active {
+                background-color: #ccc;
+            }
+            div.card:has(input[type="checkbox"]:checked) {
+                border-color: #767676;
+            }
+            #title {
+                color: black;
+                font-size: 24px;
+                font-weight: bold;
+                position: absolute;
+                top: 24px;
+            }
+            .closer {
+                position: absolute;
+                top: 0px;
+                right: 5px;
+                font-size: 28px;
+                cursor: pointer;
+                display: none;
+            }
+            .checkbox {
+                width: 24px;
+                height: 24px;
+                position: absolute;
+                right: 0;
+                top: 0;
+                /* transform: translate(-50%, -50%); */
+            }
+        </style>
+        <main>
+            <div class="main pt-4 pb-5">
+                <div class="search" style="padding: 0; padding-bottom: 25px; border-bottom: 1px solid #ccc">
+                    <form class="form-inline float-left" th:action="@{/applicate/facility/index/{id}/{count}(id=${roomId},count=${count+1})}" method="get">
+                        <div class="form-group">
+                            <button type="button" class="btn btn-primary" th:onclick="|window.history.go(-${count})|"><i class="iconfont">&#xe66f;</i></button>
+                            <input style="margin: 0 4px" type="text" name="name" class="form-control" placeholder=" Enter the name of the facility" />
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="iconfont"> </i>Search</button>
+                    </form>
+                    <span id="title" style="left: 46%; background-color: white" th:text="|No.${roomId} room|"></span>
+                    <button id="add" class="btn btn-primary float-right" type="button" style="margin-left: 10px"><i class="iconfont"> </i> Adding Facilities</button>
+                    <button id="mod" class="btn btn-primary float-right" type="button" style="margin-left: 10px"><i class="iconfont">&#xe693; </i> Editing facilities</button>
+                    <button id="sub" class="btn btn-primary float-right" type="button"><i class="iconfont">&#xe6e1; </i>Upgrading of room facilities</button>
+                </div>
+                <div class="info" th:style="|align-content: ${#lists.isEmpty(list) ? 'normal' : 'flex-start'};|">
+                    <h1 th:if="${#lists.isEmpty(list)}" class="display-4" style="margin: auto">No room facilities</h1>
+                    <div class="card" th:unless="${#lists.isEmpty(list)}" th:each="facility : ${list}">
+                        <div th:id="${facility.facilityId}" class="card-body" interact="true" style="display: flex">
+                            <div>
+                                <h5 class="input" th:text="${facility.facilityName}"></h5>
+                                <span class="input" th:text="${facility.description}"></span>
+                            </div>
+                            <input type="checkbox" v-model="facilities" th:value="${facility.facilityId}" class="checkbox" onclick="event.stopPropagation()" />
+                            <i class="iconfont closer">&#xe6ea;</i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <div class="mask"></div>
+        <div class="frame register" style="width: 500px">
+            <div class="header">
+                <h2>Adding Facilities</h2>
+            </div>
+            <div class="frame-body">
+                <input id="hotelId" type="hidden" th:value="${session.hotelId}" />
+                <div class="form-group">
+                    <label>Name of facility</label>
+                    <input type="text" v-model="name" class="form-control" />
+                    <small class="form-text text-muted"></small>
+                </div>
+                <div class="form-group">
+                    <label>Facility Description</label>
+                    <textarea rows="6" v-model="description" class="form-control" style="resize: none"></textarea>
+                    <small class="form-text text-muted"></small>
+                </div>
+            </div>
+            <div class="footer">
+                <input type="button" id="cancel" class="btn btn-primary" value="Cancel" />
+                <input type="submit" id="submit" class="btn btn-primary" value="Submit" th:@click="|JustDoIt('${session.user.roleName}')|" />
+            </div>
+        </div>
+        <script th:inline="javascript">
+            var vue = new Vue({
+                el: ".frame",
+                data: {
+                    id: null,
+                    name: "",
+                    description: "",
+                },
+                methods: {
+                    JustDoIt(role) {
+                        setTimeout(() => {
+                            axios({
+                                url: "/applicate/" + role + "/facility/crud",
+                                method: vue.method,
+                                data: {
+                                    facilityId: parseInt(vue.id),
+                                    hotelId: /*[[${hotelId}]]*/ null,
+                                    facilityName: vue.name,
+                                    description: vue.description,
+                                },
+                            })
+                                .then((response) => {
+                                    var result = response.data;
+                                    if (result.code == 200) {
+                                        alert(role == "Admin" ? result.message : "申请提交成功，请等待审核");
+                                        window.location.reload();
+                                    } else {
+                                        alert(role == "Admin" ? result.message : "申请提交失败");
+                                    }
+                                })
+                                .catch((error) => {
+                                    alert("请求出错：" + error);
+                                    window.location.reload();
+                                });
+                        }, 400);
+                    },
+                },
+            });
+            var vue2 = new Vue({
+                el: ".info",
+                data: {
+                    id: null,
+                    facilities: /*[[${facilities}]]*/ [],
+                },
+                methods: {
+                    JustDoIt() {
+                        axios
+                            .put("/applicate/facility/update/" + /*[[${roomId}]]*/ "", vue2.facilities.map(Number))
+                            .then((response) => {
+                                var result = response.data;
+                                alert(result.message);
+                                if (result.code == 200) {
+                                    window.location.reload();
+                                }
+                            })
+                            .catch((error) => {
+                                alert("请求出错：" + error);
+                                window.location.reload();
+                            });
+                    },
+                },
+            });
+            $("#title").css("left", ($(".main").innerWidth() - $("#title").width()) / 2);
+            $(".card-body").click(function () {
+                if ($(this).attr("interact") == "true") {
+                    $(this).find(".checkbox").trigger("click");
+                } else {
+                    var text = [];
+                    $(this)
+                        .find(".input")
+                        .each(function () {
+                            text.push($(this).text());
+                        });
+                    $(".header h2").text("编辑设施");
+                    vue.method = "put";
+                    vue.id = $(this).attr("id");
+                    vue.name = text[0];
+                    vue.description = text[1];
+                    appear($(".mask"), $(".frame"));
+                }
+            });
+            $("#add").click(function () {
+                vue.method = "post";
+                vue.id = null;
+                vue.name = "";
+                vue.description = "";
+                $(".header h2").text("Adding Facilities");
+                appear($(".mask"), $(".frame"));
+            });
+            $("#sub").click(function () {
+                vue2.JustDoIt();
+            });
+            $("#mod").click(function () {
+                var card_body = $(".card-body");
+                if ($(this).text().endsWith("退出编辑")) {
+                    // 选择模式
+                    $(this).html('<i class="iconfont">&#xe693; </i>编辑设施');
+                    $(this).attr("class", "btn btn-primary float-right");
+                    $(".closer").css("display", "none");
+                    $(".checkbox").css("display", "block");
+                    card_body.attr({ interact: true, title: "点击选中该设施" });
+                } else {
+                    // 编辑模式
+                    $(this).html('<i class="iconfont">&#xe68c; </i>退出编辑');
+                    $(this).attr("class", "btn btn-info float-right");
+                    $(".closer").css("display", "block");
+                    $(".checkbox").css("display", "none");
+                    card_body.attr({ interact: false, title: "点击编辑该设施" });
+                    $(".closer").click(function (event) {
+                        event.stopPropagation();
+                        if (!confirm("确定要删除吗？")) {
+                            return;
+                        }
+                        $.ajax({
+                            url: "/applicate/facility/crud/" + $(this).parent().attr("id"),
+                            type: "DELETE",
+                            data: {},
+                            success: function (data) {
+                                alert(data.message);
+                                if (data.code == 200) {
+                                    window.location.reload();
+                                }
+                            },
+                            error: function (textStatus, errorThrown) {
+                                alert("请求出错：" + textStatus + "，" + errorThrown);
+                            },
+                        });
+                    });
+                }
+            });
+            $("#cancel, #submit").click(function () {
+                disappear($(".mask"), $(".frame"));
+            });
+        </script>
+    </body>
+</html>

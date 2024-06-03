@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.hualiang.core.mapper.HotelRegisterationMapper" >
+
+    <select id="getAllHotelRegisteration" resultType="HotelRegisteration">
+        select hotel_registeration.*, real_name manager from hotel_registeration left join user on manager_id = uid
+        <where>
+            <if test="option != 'status'">
+                ${option} like "%"#{value}"%" and status is not null
+            </if>
+            <if test="option == 'status'">
+                and status is ${value}
+            </if>
+        </where>
+    </select>
+
+</mapper>

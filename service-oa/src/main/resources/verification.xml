@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>邮箱验证</title>
+        <style>
+            /* 添加一些样式以提高邮件的可读性 */
+            body {
+                font-family: Arial, sans-serif;
+            }
+            .container {
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+                background-color: #f2f2f2;
+            }
+            h1 {
+                text-align: center;
+                color: #333333;
+            }
+            p {
+                margin-bottom: 20px;
+            }
+            .code {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 24px;
+                font-weight: bold;
+                background-color: #ffffff;
+                border: 2px solid #333333;
+                padding: 10px;
+                max-width: 300px;
+                margin: 0 auto;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>验证您的邮箱</h1>
+            <p>尊敬的用户，</p>
+            <p>请使用以下验证码确认您的邮箱地址：</p>
+            <div class="code"><span></span></div>
+            <p>此验证码将在60秒后失效，请尽快完成验证。</p>
+            <p>如果您未进行任何操作，请忽略此邮件。</p>
+            <p>祝您使用愉快！</p>
+        </div>
+    </body>
+</html>

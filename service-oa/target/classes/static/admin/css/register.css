@@ -1,0 +1,41 @@
+body {
+    background-color: #e5e5e5;
+}
+body .register {
+    width: 400px;
+    height: 555px;
+    position: fixed;
+    top: 38%;
+    left: 50%;
+    margin-left: -200px;
+    margin-top: -200px;
+    background-color: #fff;
+    padding: 30px 40px;
+}
+
+input:not([type="radio"]) {
+    font-size: 1rem;
+}
+
+#bottom {
+    text-align: center;
+    margin-top: 1.2rem;
+}
+
+#email input {
+    width: 240px;
+    float: left;
+}
+
+#email button {
+    width: 80px;
+    height: 42px;
+    border-radius: 0.3rem;
+    border: none;
+    font-size: 15px;
+}
+
+#identify label {
+    margin-bottom: 0;
+    margin-right: 17px;
+}

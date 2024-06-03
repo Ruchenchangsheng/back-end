@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hualiang.core.mapper.FacilityMapper">
+
+    <!-- List<String> getAllFacilitIdyByRoom(Integer roomId); -->
+    <select id="getAllFacilitIdyByRoom" resultType="String">
+        select facility_id from facility left join room_facility using(facility_id) where room_id = #{roomId}
+    </select>
+
+    <!-- Integer insertFacilityToRoom(@Param("facilities") List<Integer> facilities, @Param("roomId") Integer roomId); -->
+    <insert id="insertFacilityToRoom">
+        insert into room_facility values
+        <foreach collection="facilities" item="facilityId" separator=",">
+            (#{roomId}, #{facilityId})
+        </foreach>
+    </insert>
+
+    <!-- Integer deleteAllFacilityFromRoom(Integer roomId); -->
+    <delete id="deleteAllFacilityFromRoom">
+        delete from room_facility where room_id = #{roomId}
+    </delete>
+
+</mapper>

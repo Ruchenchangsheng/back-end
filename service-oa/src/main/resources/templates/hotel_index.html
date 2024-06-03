@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+        <title>User List</title>
+        <link rel="icon" th:href="@{/static/favicon.ico}" />
+        <link rel="stylesheet" th:href="@{/static/bootstrap/css/bootstrap.min.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/main.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/user_index.css}" />
+        <link rel="stylesheet" th:href="@{/static/admin/css/viewer.min.css}" />
+        <script th:src="@{/static/js/vue.min.js}"></script>
+        <script th:src="@{/static/js/axios.min.js}"></script>
+        <script th:src="@{/static/js/jquery-3.3.1.min.js}"></script>
+        <script th:src="@{/static/js/viewer.min.js}"></script>
+        <script th:src="@{/static/bootstrap/js/bootstrap.bundle.js}"></script>
+        <script th:src="@{/static/admin/js/config.js}"></script>
+        <script th:src="@{/static/admin/js/hotel_script.js}"></script>
+    </head>
+
+    <body>
+        <main>
+            <div class="main">
+                <div class="search" th:if="${session.user.roleName == 'Admin'}">
+                    <form class="form-inline float-left" th:action="@{/hotel/index/1}" method="get">
+                        <div class="form-group">
+                            <select name="option">
+                                <option value="hotel_id" th:selected="${map['option'] == 'hotel_id'}">ID</option>
+                                <option value="hotel_name" th:selected="${map['option'] == 'hotel_name'}">Name</option>
+                                <option value="address" th:selected="${map['option'] == 'address'}">address</option>
+                                <option value="phone" th:selected="${map['option'] == 'phone'}">Phone Number</option>
+                            </select>
+                            <input style="margin: 0 4px" type="text" name="value" th:value="${map['value']}" class="form-control" v-model="" placeholdeclassr="Enter keywords" />
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="iconfont"> </i>Search</button>
+                    </form>
+<!--                    <a id="add" class="btn btn-secondary float-right" href="javascript:;" th:if="${session.user.roleName == 'Admin'}"><i class="iconfont"> </i>新增酒店</a>-->
+                </div>
+
+                <div class="table-box" th:style="|display: ${#lists.isEmpty(page.records) ? 'flex' : 'block'};|">
+                    <h1 th:if="${#lists.isEmpty(page.records)}" class="display-4" style="margin: auto">No Hotel</h1>
+                    <table th:unless="${#lists.isEmpty(page.records)}" class="table" style="text-align: center">
+                        <thead>
+                            <tr>
+                                <th scope="col">ID</th>
+                                <th scope="col">Img</th>
+                                <th scope="col">Hotel Name</th>
+                                <th scope="col">Hotel Manager</th>
+                                <th scope="col">address</th>
+                                <th scope="col">Phone Number</th>
+                                <th scope="col">Manipulate</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="hotel : ${page.records}">
+                                <th th:text="${hotel.hotelId}" scope="row"></th>
+                                <td class="pic">
+                                    <div style="position: relative; display: inline-block" th:object="${hotel.getURL()}">
+                                        <img alt="Hotel Thumbnails" height="68.8px" th:src="@{*{[0]}}" />
+                                        <span class="img_num" tabindex="0" th:text="|*{length}|"></span>
+                                    </div>
+                                    <img style="display: none;" height="0" th:src="@{${url}}" th:each="url : ${hotel.getPicURL()}" />
+                                </td>
+                                <td><a title="Click for hotel room information" th:href="@{/hotel/{s}/room/index/1(s=${hotel.hotelId},option=room_id,value=)}" th:text="${hotel.hotelName}"></a></td>
+                                <td th:text="${hotel.manager}"></td>
+                                <td th:text="${hotel.address}"></td>
+                                <td th:text="${hotel.phone}"></td>
+                                <td style="padding: 0.4rem">
+                                    <button th:id="${hotel.hotelId}" class="modify">Compiler</button>
+                                    <button th:id="${hotel.hotelId}" class="delete">Delete</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="page">
+                    <span class="total float-left page-link" th:text="|${page.total}|"></span>
+                    <ul class="pagination">
+                        <li class="page-item"><a class="page-link" title="Index" th:if="${page.current > 1}" th:href="@{/hotel/index/1?option={s1}&value={s2}(s1=${map['option']},s2=${map['value']})}">&lt;&lt;</a></li>
+                        <li class="page-item"><a class="page-link" title="前一页" th:if="${page.current > 1}" th:href="@{/hotel/index/{s}(s=${page.current-1},option=${map['option']},value=${map['value']})}">&lt;</a></li>
+                        <span class="total float-left page-link"><span>[[${page.current}]]</span>/<span>[[${page.pages}]]</span></span>
+                        <li class="page-item"><a class="page-link" title="后一页" th:if="${page.pages > page.current}" th:href="@{/hotel/index/{s}(s=${page.current+1},option=${map['option']},value=${map['value']})}">&gt;</a></li>
+                        <li class="page-item"><a class="page-link" title="尾页" th:if="${page.pages > page.current}" th:href="@{/hotel/index/{s}(s=${page.pages},option=${map['option']},value=${map['value']})}">&gt;&gt;</a></li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+        <div class="mask"></div>
+        <div class="register">
+            <form>
+                <div class="header">
+                    <h2>Add Hotel</h2>
+                </div>
+                <div class="body">
+                    <input type="hidden" name="hotelId" v-model="hotelId" />
+                    <div class="container">
+                        <input id="hotelName" name="hotelName" type="text" v-model="hotelName" placeholder="Please enter the hotel name (required)" />
+                        <span class="left"></span>
+                        <span class="right"></span>
+                        <span class="top"></span>
+                        <span class="bottom"></span>
+                    </div>
+                    <div class="container">
+                        <input id="managerId" name="managerId" type="number" v-model="managerId" placeholder="Please enter the operator's UID (required)（必填）" />
+                        <span class="left"></span>
+                        <span class="right"></span>
+                        <span class="top"></span>
+                        <span class="bottom"></span>
+                    </div>
+                    <div class="container">
+                        <input id="address" name="address" type="text" v-model="address" placeholder="Please enter the hotel address (required)" />
+                        <span class="left"></span>
+                        <span class="right"></span>
+                        <span class="top"></span>
+                        <span class="bottom"></span>
+                    </div>
+                    <div class="container">
+                        <input id="phone" name="phone" type="tel" v-model="phone" placeholder="Please enter a contact phone number (required)" />
+                        <span class="left"></span>
+                        <span class="right"></span>
+                        <span class="top"></span>
+                        <span class="bottom"></span>
+                    </div>
+                </div>
+                <div class="footer">
+                    <input type="button" id="cancel" class="btn btn-primary" value="Cancel" style="margin: 0 59.8px" />
+                    <input type="button" id="submit" class="btn btn-primary" value="Submit" style="margin: 0 59.8px" @click="JustDoIt" />
+                </div>
+            </form>
+        </div>
+        <script>
+            $(".pic").viewer();
+        </script>
+    </body>
+</html>
+

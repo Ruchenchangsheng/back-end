@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.hualiang.core.mapper.UserMapper">
+
+    <!-- 帮我写一个resultMap用来接收多表联查查出的User字段和Role字段，并把Role字段打包赋值到User的role字段里 -->
+    <!-- <resultMap id="userWithRole" type="User">
+        <id column="uid" property="uid"/>
+        <result column="username" property="username"/>
+        <result column="password" property="password"/>
+        <result column="real_name" property="realName"/>
+        <result column="gender" property="gender"/>
+        <result column="age" property="age"/>
+        <result column="phone" property="phone"/>
+        <result column="email" property="email"/>
+        <result column="name" property="roleName"/>
+        <result column="rid" property="role.rid"/>
+        <result column="name" property="role.Name"/>
+        <result column="description" property="role.description"/>
+    </resultMap> -->
+
+    <!-- selectWithRoleByField -->
+    <select id="selectWithRoleByField" resultType="User">
+        select u.*, role_name from user u left join role using(rid) where ${field} = #{value}
+    </select>
+
+    <!-- selectAllWithRole --> 
+    <select id="selectAllWithRole" resultType="User">
+        select u.*, role_name from user u left join role using(rid)
+    </select>
+</mapper>

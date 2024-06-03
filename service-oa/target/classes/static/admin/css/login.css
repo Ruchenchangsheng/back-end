@@ -1,0 +1,19 @@
+body {
+    background-color: #e5e5e5;
+}
+body .login {
+    width: 400px;
+    height: 450px;
+    position: fixed;
+    top: 40%;
+    left: 50%;
+    margin-left: -200px;
+    margin-top: -200px;
+    background-color: #fff;
+    padding: 40px;
+}
+
+#bottom {
+    text-align: center;
+    margin-top: 1.2rem;
+}

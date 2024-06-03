@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Application</title>
+    <link rel="icon" th:href="@{/static/favicon.ico}" />
+    <link rel="stylesheet" th:href="@{/static/bootstrap/css/bootstrap.min.css}" />
+    <link rel="stylesheet" th:href="@{/static/admin/css/main.css}" />
+    <link rel="stylesheet" th:href="@{/static/admin/css/viewer.min.css}" />
+    <script th:src="@{/static/js/vue.min.js}"></script>
+    <script th:src="@{/static/js/axios.min.js}"></script>
+    <script th:src="@{/static/js/jquery-3.3.1.min.js}"></script>
+    <script th:src="@{/static/js/viewer.min.js}"></script>
+    <script th:src="@{/static/bootstrap/js/bootstrap.bundle.js}"></script>
+    <script th:src="@{/static/admin/js/config.js}"></script>
+</head>
+
+<body>
+<style>
+    .card {
+        border: 0;
+        margin-top: 24px;
+        flex-direction: row;
+    }
+    h5 {
+        color: black;
+        font-weight: bold;
+    }
+    .card-body {
+        padding: 1rem;
+        display: flex;
+        justify-content: space-between;
+        border: 1px solid rgba(0, 0, 0, 0.125);
+    }
+    img {
+        cursor: pointer;
+        border-radius: 4px;
+    }
+    .img_num {
+        cursor: pointer;
+        margin: 0;
+        border: 0;
+        vertical-align: baseline;
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 4px 0 4px 0;
+        padding: 0 5px;
+        height: 20px;
+        line-height: 20px;
+        color: #fff;
+        font-size: 12px;
+    }
+    .info {
+        display: flex;
+        flex-direction: column;
+    }
+    .message {
+        display: block;
+        max-height: 71.7px;
+        overflow-y: auto;
+    }
+    .sidebar {
+        display: none;
+        border: 1px solid #ccc;
+        padding: 1rem;
+    }
+    .extend {
+        border: 1px solid #ccc;
+        padding: 10px;
+        display: flex;
+    }
+    .click:hover {
+        cursor: pointer;
+        background-color: #ddd;
+    }
+    .click:active {
+        background-color: #ccc;
+    }
+</style>
+<main>
+    <div class="main pt-4 pb-5">
+        <div class="search" style="padding: 0; padding-bottom: 28px; border-bottom: 1px solid #ccc">
+            <form class="form-inline float-left" th:action="@{/applicate/index/hotel}" method="get">
+                <div class="form-group">
+                    <select name="option">
+                        <option value="hotel_name" selected>Hotel Name</option>
+                        <option value="submit_time">Submission Time</option>
+                    </select>
+                    <input style="margin: 0 4px" type="text" name="value" value="" class="form-control" placeholder="Enter keyword" />
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="iconfont"> </i>Search</button>
+            </form>
+        </div>
+        <div class="info" style="height: 100%; overflow: auto">
+            <h1 th:if="${#lists.isEmpty(list)}" class="display-4" style="margin: auto">No applications</h1>
+            <div class="each" th:unless="${#lists.isEmpty(list)}" th:each="applicate : ${list}">
+                <div class="card">
+                    <div class="extend click" title="Click to view submission details">
+                        <i class="iconfont arrow" style="margin: auto; font-size: 32px; rotate: 0deg">&#xe66c;</i>
+                    </div>
+                    <div class="card-body">
+                        <div style="max-width: 76%">
+                            <h5 th:text="${applicate.title}">Update Hotel Facilities</h5>
+                            <span th:text="${applicate.getMessage()}"></span>
+                        </div>
+                        <span style="font-size: 24px; font-weight: bold; margin: auto 0" th:text="${applicate.hotelName}"></span>
+                    </div>
+                    <div class="extend">
+                        <button style="margin: auto 3px" type="button" class="btn btn-success" th:@click="|JustDoIt(${applicate.id},1)|">Approve</button>
+                        <button style="margin: auto 3px" type="button" class="btn btn-danger" th:@click="|JustDoIt(${applicate.id},0)|">Reject</button>
+                    </div>
+                </div>
+                <div class="sidebar" th:if="${#strings.endsWith(applicate.title,'设施')}" th:object="${applicate.getMap()}">
+                    <h5 th:text="*{get('facilityName')}">Facility Name</h5>
+                    <span class="message" th:text="*{get('description')}">Description</span>
+                </div>
+                <div class="sidebar" th:if="${#strings.endsWith(applicate.title,'Room Type')}" th:object="${applicate.getTypeMap()}">
+                    <div style="display: flex">
+                        <div class="float-left pic" style="position: relative">
+                            <img class="pic-img" height="104" alt="photo" th:src="@{*{get('pic')}}" />
+                            <span class="img_num" tabindex="0" th:text="|*{get('size')}|"></span>
+                            <img style="display: none" height="0" th:src="@{${path}}" th:each="path : *{#strings.arraySplit(get('url'),'|')}" />
+                        </div>
+                        <div style="margin-left: 10px">
+                            <h5 th:text="*{get('typeName')}">Room Type Name</h5>
+                            <span class="message" th:text="*{get('message')}">Message</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+
+<script>
+    var vue = new Vue({
+        el: ".info",
+        data: {},
+        methods: {
+            JustDoIt(id, status) {
+                axios
+                    .get(`/applicate/handle/${id}/${status}`)
+                    .then((response) => {
+                        var result = response.data;
+                        alert(result.message);
+                        if (result.code == 200) {
+                            window.location.reload();
+                        }
+                    })
+                    .catch((error) => {
+                        alert("请求出错：" + error);
+                        window.location.reload();
+                    });
+            },
+        },
+    });
+
+    $(".pic").viewer();
+
+    $(".click").click(function () {
+        $(this).parent().next().slideToggle();
+        var arrow = $(this).find(".arrow");
+        arrow.animate({ rotate: 90 - parseInt(arrow.css("rotate").substring(0, 2)) + "deg" }, 300);
+    });
+</script>
+</html>
+
